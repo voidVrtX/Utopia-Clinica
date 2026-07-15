@@ -33,7 +33,8 @@ export function useCrearRecetaViewModel(citaId: string) {
   const [diagnostico, setDiagnostico] = useState('');
   const [tratamiento, setTratamiento] = useState('');
   const [observaciones, setObservaciones] = useState('');
-  const [presionArterial, setPresionArterial] = useState('');
+  const [presionSistolica, setPresionSistolica] = useState('');
+  const [presionDiastolica, setPresionDiastolica] = useState('');
   const [temperatura, setTemperatura] = useState('');
   const [medicamentos, setMedicamentos] = useState<MedicamentoReceta[]>([]);
   const [nuevoMedicamentoNombre, setNuevoMedicamentoNombre] = useState('');
@@ -76,6 +77,7 @@ export function useCrearRecetaViewModel(citaId: string) {
   const guardar = async (onOk: () => void) => {
     if (!cita || !usuario) return;
     setEnviando(true);
+    const presionArterial = presionSistolica && presionDiastolica ? `${presionSistolica}/${presionDiastolica} mmHg` : '';
     await RecetasController.crear({
       pacienteId: cita.pacienteId,
       medicoId: usuario.id,
@@ -85,7 +87,7 @@ export function useCrearRecetaViewModel(citaId: string) {
       tratamiento,
       observaciones,
       presionArterial,
-      temperatura,
+      temperatura: temperatura ? `${temperatura} °C` : '',
       medicamentos,
     });
     await CitasController.cambiarEstado(cita.id, 'Completada');
@@ -101,8 +103,10 @@ export function useCrearRecetaViewModel(citaId: string) {
     setTratamiento,
     observaciones,
     setObservaciones,
-    presionArterial,
-    setPresionArterial,
+    presionSistolica,
+    setPresionSistolica,
+    presionDiastolica,
+    setPresionDiastolica,
     temperatura,
     setTemperatura,
     medicamentos,
