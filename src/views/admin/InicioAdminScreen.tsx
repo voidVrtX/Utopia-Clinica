@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
 import { useSession } from '../../context/SessionContext';
 import Avatar from '../../components/Avatar';
+import ResponsiveContainer from '../../components/ResponsiveContainer';
+import ResponsiveGrid from '../../components/ResponsiveGrid';
 import { useAdminHomeViewModel } from '../../viewmodels/useAdminHomeViewModel';
 import { formatFechaCorta } from '../../utils/helpers';
 
@@ -12,7 +14,8 @@ export default function InicioAdminScreen({ navigation }: any) {
   const { totalMedicos, totalCitas, confirmadas, pendientes, canceladas, avisos, cargando } = useAdminHomeViewModel();
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={styles.container}>
+    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ flexGrow: 1 }}>
+      <ResponsiveContainer style={styles.container}>
       <View style={styles.header}>
         <View>
           <Text style={styles.bienvenido}>Bienvenido, Administrador</Text>
@@ -47,17 +50,20 @@ export default function InicioAdminScreen({ navigation }: any) {
       {cargando ? (
         <Text style={styles.muted}>Cargando…</Text>
       ) : (
-        avisos.map((a) => (
-          <View key={a.id} style={styles.avisoCard}>
-            <Ionicons name="construct" size={20} color={colors.primary} style={{ marginRight: spacing.sm }} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.avisoTitulo}>{a.titulo}</Text>
-              <Text style={styles.avisoSub}>{formatFechaCorta(a.fechaISO)} {a.hora ?? ''}</Text>
+        <ResponsiveGrid>
+          {avisos.map((a) => (
+            <View key={a.id} style={styles.avisoCard}>
+              <Ionicons name="construct" size={20} color={colors.primary} style={{ marginRight: spacing.sm }} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.avisoTitulo}>{a.titulo}</Text>
+                <Text style={styles.avisoSub}>{formatFechaCorta(a.fechaISO)} {a.hora ?? ''}</Text>
+              </View>
             </View>
-          </View>
-        ))
+          ))}
+        </ResponsiveGrid>
       )}
       <View style={{ height: 24 }} />
+      </ResponsiveContainer>
     </ScrollView>
   );
 }

@@ -22,37 +22,19 @@ async function seed() {
 
     await client.query('BEGIN');
 
-    // Orden seguro por FKs: avisos/recetas/citas primero, luego users.
-    await client.query('TRUNCATE avisos, recetas, citas, users RESTART IDENTITY CASCADE');
+    // Orden seguro por FKs: hojas primero, tablas base al final.
+    await client.query(
+      'TRUNCATE avisos, recetas, citas, pacientes, medicos, administradores, farmacias, usuarios RESTART IDENTITY CASCADE'
+    );
 
-    const users = [
-      {
-        id: IDS.admin1,
-        email: 'arlette_admin@utopia.com',
-        role: 'admin',
-        nombre: 'Arlette Domínguez',
-      },
-      {
-        id: IDS.farmacia1,
-        email: 'adan_farmacia@utopia.com',
-        role: 'farmacia',
-        nombre: 'Adán Ramírez',
-      },
+    const usuarios = [
+      { id: IDS.admin1, email: 'arlette_admin@utopia.com', role: 'admin', nombre: 'Arlette Domínguez' },
+      { id: IDS.farmacia1, email: 'adan_farmacia@utopia.com', role: 'farmacia', nombre: 'Adán Ramírez' },
       {
         id: IDS.medico1,
         email: 'tovar_medico@utopia.com',
         role: 'medico',
         nombre: 'Dr. Arturo Tovar',
-        especialidad: 'Cardiología',
-        institucion: 'Utopía Clínica',
-        anios_experiencia: '12 años',
-        sobre_el_medico:
-          'Médico especialista en cardiología con amplia experiencia en el diagnóstico y tratamiento de enfermedades cardiovasculares.',
-        areas_especialidad: ['Hipertensión', 'Enfermedades del corazón'],
-        ubicacion_atencion: 'Av. Insurgentes Sur 1234 Col. del Valle',
-        activo: true,
-        valoracion: 4.8,
-        num_opiniones: 128,
         telefono: '55 1234 5678',
         fecha_nacimiento: '1984-03-10',
         sexo: 'Masculino',
@@ -62,40 +44,12 @@ async function seed() {
         email: 'carmen.lopez@utopia.com',
         role: 'medico',
         nombre: 'Dra. Carmen López',
-        especialidad: 'Pediatría',
-        institucion: 'Utopía Clínica',
-        anios_experiencia: '8 años',
-        sobre_el_medico: 'Especialista en pediatría, enfocada en el desarrollo integral de niñas y niños.',
-        areas_especialidad: ['Control de niño sano', 'Vacunación'],
-        ubicacion_atencion: 'Av. Insurgentes Sur 1234 Col. del Valle',
-        activo: true,
-        valoracion: 4.9,
-        num_opiniones: 96,
         telefono: '55 2233 4455',
         fecha_nacimiento: '1990-07-02',
         sexo: 'Femenino',
       },
-      {
-        id: IDS.medico3,
-        email: 'sofia.ramirez@utopia.com',
-        role: 'medico',
-        nombre: 'Dra. Sofía Ramírez',
-        especialidad: 'Neurología',
-        activo: false,
-        valoracion: 4.6,
-        num_opiniones: 54,
-        telefono: '55 3344 5566',
-      },
-      {
-        id: IDS.medico4,
-        email: 'andres.martinez@utopia.com',
-        role: 'medico',
-        nombre: 'Dr. Andrés Martínez',
-        especialidad: 'Dermatología',
-        activo: true,
-        valoracion: 4.7,
-        num_opiniones: 72,
-      },
+      { id: IDS.medico3, email: 'sofia.ramirez@utopia.com', role: 'medico', nombre: 'Dra. Sofía Ramírez', telefono: '55 3344 5566' },
+      { id: IDS.medico4, email: 'andres.martinez@utopia.com', role: 'medico', nombre: 'Dr. Andrés Martínez' },
       {
         id: IDS.paciente1,
         email: 'osbaldo_paciente@utopia.com',
@@ -105,12 +59,6 @@ async function seed() {
         sexo: 'Masculino',
         telefono: '55 1234 5678',
         direccion: '16 de septiembre 123, Toluca',
-        seguro_medico: '12345566789',
-        contacto_emergencia: {
-          nombreCompleto: 'María Venegas',
-          parentesco: 'Madre',
-          telefono: '55 9988 7766',
-        },
       },
       {
         id: IDS.paciente2,
@@ -123,22 +71,15 @@ async function seed() {
       },
     ];
 
-    const insertUserSql = `
-      INSERT INTO users (
+    const insertUsuarioSql = `
+      INSERT INTO usuarios (
         id, email, password_hash, role, nombre, apellido_paterno, apellido_materno,
-        telefono, fecha_nacimiento, sexo, direccion, seguro_medico, avatar_color,
-        contacto_emergencia, especialidad, institucion, anios_experiencia, sobre_el_medico,
-        areas_especialidad, ubicacion_atencion, activo, valoracion, num_opiniones
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7,
-        $8, $9, $10, $11, $12, $13,
-        $14, $15, $16, $17, $18,
-        $19, $20, $21, $22, $23
-      )
+        telefono, fecha_nacimiento, sexo, direccion, avatar_color
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
     `;
 
-    for (const u of users) {
-      await client.query(insertUserSql, [
+    for (const u of usuarios) {
+      await client.query(insertUsuarioSql, [
         u.id,
         u.email,
         passwordHash,
@@ -150,18 +91,104 @@ async function seed() {
         u.fecha_nacimiento ?? null,
         u.sexo ?? null,
         u.direccion ?? null,
-        u.seguro_medico ?? null,
         u.avatar_color ?? null,
-        u.contacto_emergencia ? JSON.stringify(u.contacto_emergencia) : null,
-        u.especialidad ?? null,
-        u.institucion ?? null,
-        u.anios_experiencia ?? null,
-        u.sobre_el_medico ?? null,
-        u.areas_especialidad ?? null,
-        u.ubicacion_atencion ?? null,
-        u.activo ?? true,
-        u.valoracion ?? null,
-        u.num_opiniones ?? 0,
+      ]);
+    }
+
+    await client.query('INSERT INTO administradores (id) VALUES ($1)', [IDS.admin1]);
+    await client.query('INSERT INTO farmacias (id) VALUES ($1)', [IDS.farmacia1]);
+
+    const medicos = [
+      {
+        id: IDS.medico1,
+        especialidad: 'Cardiología',
+        institucion: 'Utopía Clínica',
+        anios_experiencia: '12 años',
+        sobre_el_medico:
+          'Médico especialista en cardiología con amplia experiencia en el diagnóstico y tratamiento de enfermedades cardiovasculares.',
+        areas_especialidad: ['Hipertensión', 'Enfermedades del corazón'],
+        ubicacion_atencion: 'Av. Insurgentes Sur 1234 Col. del Valle',
+        activo: true,
+        valoracion: 4.8,
+        num_opiniones: 128,
+      },
+      {
+        id: IDS.medico2,
+        especialidad: 'Pediatría',
+        institucion: 'Utopía Clínica',
+        anios_experiencia: '8 años',
+        sobre_el_medico: 'Especialista en pediatría, enfocada en el desarrollo integral de niñas y niños.',
+        areas_especialidad: ['Control de niño sano', 'Vacunación'],
+        ubicacion_atencion: 'Av. Insurgentes Sur 1234 Col. del Valle',
+        activo: true,
+        valoracion: 4.9,
+        num_opiniones: 96,
+      },
+      {
+        id: IDS.medico3,
+        especialidad: 'Neurología',
+        activo: false,
+        valoracion: 4.6,
+        num_opiniones: 54,
+      },
+      {
+        id: IDS.medico4,
+        especialidad: 'Dermatología',
+        activo: true,
+        valoracion: 4.7,
+        num_opiniones: 72,
+      },
+    ];
+
+    const insertMedicoSql = `
+      INSERT INTO medicos (
+        id, especialidad, institucion, anios_experiencia, sobre_el_medico,
+        areas_especialidad, ubicacion_atencion, activo, valoracion, num_opiniones
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    `;
+
+    for (const m of medicos) {
+      await client.query(insertMedicoSql, [
+        m.id,
+        m.especialidad,
+        m.institucion ?? null,
+        m.anios_experiencia ?? null,
+        m.sobre_el_medico ?? null,
+        m.areas_especialidad ?? null,
+        m.ubicacion_atencion ?? null,
+        m.activo ?? true,
+        m.valoracion ?? null,
+        m.num_opiniones ?? 0,
+      ]);
+    }
+
+    const pacientes = [
+      {
+        id: IDS.paciente1,
+        seguro_medico: '12345566789',
+        tipo_sangre: 'O+',
+        alergias: ['Penicilina'],
+        contacto_emergencia: {
+          nombreCompleto: 'María Venegas',
+          parentesco: 'Madre',
+          telefono: '55 9988 7766',
+        },
+      },
+      { id: IDS.paciente2 },
+    ];
+
+    const insertPacienteSql = `
+      INSERT INTO pacientes (id, seguro_medico, tipo_sangre, alergias, contacto_emergencia)
+      VALUES ($1, $2, $3, $4, $5)
+    `;
+
+    for (const p of pacientes) {
+      await client.query(insertPacienteSql, [
+        p.id,
+        p.seguro_medico ?? null,
+        p.tipo_sangre ?? null,
+        p.alergias ?? null,
+        p.contacto_emergencia ? JSON.stringify(p.contacto_emergencia) : null,
       ]);
     }
 
@@ -334,7 +361,7 @@ async function seed() {
 
     await client.query('COMMIT');
     console.log('Seed completado. Usuarios de prueba (password para todos: "Utopia123"):');
-    users.forEach((u) => console.log(`  - [${u.role}] ${u.email}`));
+    usuarios.forEach((u) => console.log(`  - [${u.role}] ${u.email}`));
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;

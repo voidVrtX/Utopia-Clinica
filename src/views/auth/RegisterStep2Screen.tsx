@@ -6,6 +6,7 @@ import TextField from '../../components/TextField';
 import DatePickerCalendar from '../../components/DatePickerCalendar';
 import SelectChips from '../../components/SelectChips';
 import Button from '../../components/Button';
+import ResponsiveContainer from '../../components/ResponsiveContainer';
 import { useRegisterDraft } from '../../context/RegisterDraftContext';
 
 export default function RegisterStep2Screen({ navigation }: any) {
@@ -34,6 +35,7 @@ export default function RegisterStep2Screen({ navigation }: any) {
         <Text style={styles.brand}>UTOPÍA</Text>
       </View>
       <ScrollView contentContainerStyle={styles.body}>
+        <ResponsiveContainer maxWidth={480}>
         <View style={styles.card}>
           <Text style={styles.title}>Datos principales</Text>
           <Text style={styles.subtitle}>Registra una nueva cuenta</Text>
@@ -51,6 +53,7 @@ export default function RegisterStep2Screen({ navigation }: any) {
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <Button title="Continuar" onPress={continuar} />
         </View>
+        </ResponsiveContainer>
       </ScrollView>
     </View>
   );

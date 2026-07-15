@@ -3,6 +3,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
 import WeekStrip from '../../components/WeekStrip';
 import Badge from '../../components/Badge';
+import ResponsiveContainer from '../../components/ResponsiveContainer';
+import ResponsiveGrid from '../../components/ResponsiveGrid';
 import { useAgendaMedicaViewModel } from '../../viewmodels/useMedicoAgendaViewModel';
 import { formatFechaLarga } from '../../utils/helpers';
 
@@ -15,28 +17,34 @@ export default function AgendaMedicaScreen({ navigation }: any) {
         <Text style={styles.headerTitle}>Agenda médica</Text>
       </View>
       <WeekStrip selectedISO={fechaISO} onSelect={setFechaISO} />
-      <View style={styles.resumenRow}>
-        <ResumenPill label="Total Citas" value={resumen.total} color={colors.info} />
-        <ResumenPill label="Atendidas" value={resumen.atendidas} color={colors.success} />
-        <ResumenPill label="Pendientes" value={resumen.pendientes} color={colors.gold} />
-      </View>
-      <ScrollView contentContainerStyle={styles.body}>
-        <Text style={styles.fechaLarga}>Agenda del día — {formatFechaLarga(fechaISO)}</Text>
-        {cargando ? (
-          <Text style={styles.muted}>Cargando…</Text>
-        ) : citas.length === 0 ? (
-          <Text style={styles.muted}>No hay citas para este día.</Text>
-        ) : (
-          citas.map((c) => (
-            <Pressable key={c.id} style={styles.row} onPress={() => navigation.navigate('DetalleCitaMedico', { citaId: c.id })}>
-              <Text style={styles.hora}>{c.hora}</Text>
-              <View style={{ flex: 1, marginLeft: spacing.sm }}>
-                <Text style={styles.titulo}>{c.motivo ?? 'Consulta'}</Text>
-              </View>
-              <Badge estado={c.estado} />
-            </Pressable>
-          ))
-        )}
+      <ResponsiveContainer style={{ width: '100%' }}>
+        <View style={styles.resumenRow}>
+          <ResumenPill label="Total Citas" value={resumen.total} color={colors.info} />
+          <ResumenPill label="Atendidas" value={resumen.atendidas} color={colors.success} />
+          <ResumenPill label="Pendientes" value={resumen.pendientes} color={colors.gold} />
+        </View>
+      </ResponsiveContainer>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <ResponsiveContainer style={styles.body}>
+          <Text style={styles.fechaLarga}>Agenda del día — {formatFechaLarga(fechaISO)}</Text>
+          {cargando ? (
+            <Text style={styles.muted}>Cargando…</Text>
+          ) : citas.length === 0 ? (
+            <Text style={styles.muted}>No hay citas para este día.</Text>
+          ) : (
+            <ResponsiveGrid>
+              {citas.map((c) => (
+                <Pressable key={c.id} style={styles.row} onPress={() => navigation.navigate('DetalleCitaMedico', { citaId: c.id })}>
+                  <Text style={styles.hora}>{c.hora}</Text>
+                  <View style={{ flex: 1, marginLeft: spacing.sm }}>
+                    <Text style={styles.titulo}>{c.motivo ?? 'Consulta'}</Text>
+                  </View>
+                  <Badge estado={c.estado} />
+                </Pressable>
+              ))}
+            </ResponsiveGrid>
+          )}
+        </ResponsiveContainer>
       </ScrollView>
     </View>
   );

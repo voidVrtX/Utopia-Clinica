@@ -4,6 +4,8 @@ import { colors, radius, shadow, spacing } from '../../theme/theme';
 import { useSession } from '../../context/SessionContext';
 import Avatar from '../../components/Avatar';
 import Badge from '../../components/Badge';
+import ResponsiveContainer from '../../components/ResponsiveContainer';
+import ResponsiveGrid from '../../components/ResponsiveGrid';
 import { useMedicoHomeViewModel } from '../../viewmodels/useMedicoAgendaViewModel';
 
 export default function InicioMedicoScreen({ navigation }: any) {
@@ -12,7 +14,8 @@ export default function InicioMedicoScreen({ navigation }: any) {
   const { citasHoy, resumen, pendientesList, cargando } = useMedicoHomeViewModel();
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={styles.container}>
+    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ flexGrow: 1 }}>
+      <ResponsiveContainer style={styles.container}>
       <View style={styles.header}>
         <View>
           <Text style={styles.bienvenido}>Bienvenido, {usuario?.nombre}</Text>
@@ -37,18 +40,21 @@ export default function InicioMedicoScreen({ navigation }: any) {
       ) : pendientesList.length === 0 ? (
         <Text style={styles.muted}>No hay citas pendientes.</Text>
       ) : (
-        pendientesList.map((c) => (
-          <Pressable key={c.id} style={styles.card} onPress={() => navigation.navigate('DetalleCitaMedico', { citaId: c.id })}>
-            <Avatar nombre="Paciente" />
-            <View style={{ flex: 1, marginLeft: spacing.sm }}>
-              <Text style={styles.pacienteNombre}>{c.motivo ?? 'Consulta'}</Text>
-              <Text style={styles.pacienteSub}>{c.consultorio ?? 'Consultorio 1'} · {c.hora}</Text>
-            </View>
-            <Badge estado={c.estado} />
-          </Pressable>
-        ))
+        <ResponsiveGrid>
+          {pendientesList.map((c) => (
+            <Pressable key={c.id} style={styles.card} onPress={() => navigation.navigate('DetalleCitaMedico', { citaId: c.id })}>
+              <Avatar nombre="Paciente" />
+              <View style={{ flex: 1, marginLeft: spacing.sm }}>
+                <Text style={styles.pacienteNombre}>{c.motivo ?? 'Consulta'}</Text>
+                <Text style={styles.pacienteSub}>{c.consultorio ?? 'Consultorio 1'} · {c.hora}</Text>
+              </View>
+              <Badge estado={c.estado} />
+            </Pressable>
+          ))}
+        </ResponsiveGrid>
       )}
       <View style={{ height: 24 }} />
+      </ResponsiveContainer>
     </ScrollView>
   );
 }

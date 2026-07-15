@@ -1,5 +1,10 @@
 -- Esquema PostgreSQL para Utopía Clínica
 -- Basado en src/models/{User,Cita,Receta,Aviso}.ts de la app móvil
+--
+-- Una tabla base "usuarios" con los datos comunes de autenticación/perfil,
+-- y una tabla de extensión por rol (pacientes/medicos/administradores/
+-- farmacias) que solo guarda lo específico de ese rol. Evita columnas
+-- vacías cruzadas entre roles y deja el esquema documentar quién es quién.
 
 -- gen_random_uuid() es nativo desde PostgreSQL 13, no requiere pgcrypto.
 
@@ -33,9 +38,9 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================================
--- USERS (paciente, medico, admin, farmacia en una sola tabla)
+-- USUARIOS (datos comunes de autenticación/perfil para los 4 roles)
 -- ============================================================
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS usuarios (
   id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email               VARCHAR(255) NOT NULL UNIQUE,
   password_hash       TEXT NOT NULL,
@@ -47,14 +52,35 @@ CREATE TABLE IF NOT EXISTS users (
   fecha_nacimiento    DATE,
   sexo                sexo_type,
   direccion           TEXT,
-  seguro_medico       VARCHAR(100),
   avatar_color        VARCHAR(20),
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 
-  -- Paciente
-  contacto_emergencia JSONB,
+CREATE INDEX IF NOT EXISTS idx_usuarios_role ON usuarios(role);
 
-  -- Medico
-  especialidad        VARCHAR(100),
+DROP TRIGGER IF EXISTS trg_usuarios_updated_at ON usuarios;
+CREATE TRIGGER trg_usuarios_updated_at
+  BEFORE UPDATE ON usuarios
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ============================================================
+-- PACIENTES (extiende usuarios)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS pacientes (
+  id                  UUID PRIMARY KEY REFERENCES usuarios(id) ON DELETE CASCADE,
+  seguro_medico       VARCHAR(100),
+  tipo_sangre         VARCHAR(5),
+  alergias            TEXT[],
+  contacto_emergencia JSONB
+);
+
+-- ============================================================
+-- MEDICOS (extiende usuarios)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS medicos (
+  id                  UUID PRIMARY KEY REFERENCES usuarios(id) ON DELETE CASCADE,
+  especialidad        VARCHAR(100) NOT NULL,
   institucion         VARCHAR(150),
   anios_experiencia   VARCHAR(50),
   sobre_el_medico     TEXT,
@@ -62,27 +88,56 @@ CREATE TABLE IF NOT EXISTS users (
   ubicacion_atencion  TEXT,
   activo              BOOLEAN NOT NULL DEFAULT TRUE,
   valoracion          NUMERIC(2,1),
-  num_opiniones       INTEGER DEFAULT 0,
-
-  created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+  num_opiniones       INTEGER DEFAULT 0
 );
 
-CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
-CREATE INDEX IF NOT EXISTS idx_users_especialidad ON users(especialidad) WHERE role = 'medico';
+CREATE INDEX IF NOT EXISTS idx_medicos_especialidad ON medicos(especialidad);
 
-DROP TRIGGER IF EXISTS trg_users_updated_at ON users;
-CREATE TRIGGER trg_users_updated_at
-  BEFORE UPDATE ON users
-  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+-- ============================================================
+-- ADMINISTRADORES y FARMACIAS (extienden usuarios; sin campos propios
+-- por ahora, pero con tabla dedicada para poder documentar/crecer cada
+-- rol de forma independiente sin tocar a los demás).
+-- ============================================================
+CREATE TABLE IF NOT EXISTS administradores (
+  id UUID PRIMARY KEY REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS farmacias (
+  id UUID PRIMARY KEY REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+-- ============================================================
+-- Vista de conveniencia: une usuarios con la tabla de su rol para que
+-- el backend pueda seguir leyendo "una fila por usuario" con todos sus
+-- campos, sin tener que hacer el JOIN correcto en cada consulta.
+-- ============================================================
+CREATE OR REPLACE VIEW usuarios_completos AS
+SELECT
+  u.*,
+  p.seguro_medico,
+  p.tipo_sangre,
+  p.alergias,
+  p.contacto_emergencia,
+  m.especialidad,
+  m.institucion,
+  m.anios_experiencia,
+  m.sobre_el_medico,
+  m.areas_especialidad,
+  m.ubicacion_atencion,
+  m.activo,
+  m.valoracion,
+  m.num_opiniones
+FROM usuarios u
+LEFT JOIN pacientes p ON p.id = u.id
+LEFT JOIN medicos m ON m.id = u.id;
 
 -- ============================================================
 -- CITAS
 -- ============================================================
 CREATE TABLE IF NOT EXISTS citas (
   id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  paciente_id          UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  medico_id            UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  paciente_id          UUID NOT NULL REFERENCES pacientes(id) ON DELETE CASCADE,
+  medico_id            UUID NOT NULL REFERENCES medicos(id) ON DELETE CASCADE,
   fecha                DATE NOT NULL,
   hora                 VARCHAR(10) NOT NULL,
   especialidad         VARCHAR(100) NOT NULL,
@@ -111,8 +166,8 @@ CREATE TRIGGER trg_citas_updated_at
 CREATE TABLE IF NOT EXISTS recetas (
   id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   codigo_qr         VARCHAR(120) NOT NULL UNIQUE,
-  paciente_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  medico_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  paciente_id       UUID NOT NULL REFERENCES pacientes(id) ON DELETE CASCADE,
+  medico_id         UUID NOT NULL REFERENCES medicos(id) ON DELETE CASCADE,
   cita_id           UUID REFERENCES citas(id) ON DELETE SET NULL,
   fecha             DATE NOT NULL,
   diagnostico       TEXT,
@@ -122,7 +177,7 @@ CREATE TABLE IF NOT EXISTS recetas (
   temperatura       VARCHAR(20),
   valida            BOOLEAN NOT NULL DEFAULT TRUE,
   invalidada_en     TIMESTAMPTZ,
-  invalidada_por    UUID REFERENCES users(id),
+  invalidada_por    UUID REFERENCES farmacias(id),
   created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -134,7 +189,8 @@ CREATE INDEX IF NOT EXISTS idx_recetas_codigo_qr ON recetas(codigo_qr);
 -- AVISOS
 -- ============================================================
 -- para_user_id es TEXT (no FK) porque la app usa el literal 'admin'
--- para avisos globales de administración, además de ids reales de usuario.
+-- para avisos globales de administración, además de ids reales de usuario
+-- de cualquiera de los 4 roles.
 CREATE TABLE IF NOT EXISTS avisos (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   para_user_id  TEXT NOT NULL,

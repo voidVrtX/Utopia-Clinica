@@ -7,6 +7,8 @@ const medicosRoutes = require('./routes/medicos.routes');
 const citasRoutes = require('./routes/citas.routes');
 const recetasRoutes = require('./routes/recetas.routes');
 const avisosRoutes = require('./routes/avisos.routes');
+const exportRoutes = require('./routes/export.routes');
+const reportesRoutes = require('./routes/reportes.routes');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
@@ -22,6 +24,8 @@ app.use('/api/medicos', medicosRoutes);
 app.use('/api/citas', citasRoutes);
 app.use('/api/recetas', recetasRoutes);
 app.use('/api/avisos', avisosRoutes);
+app.use('/api/export', exportRoutes);
+app.use('/api/reportes', reportesRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -132,7 +132,10 @@ export default function DatePickerCalendar({
 
       <Modal visible={showCalendar} transparent animationType="fade" onRequestClose={() => setShowCalendar(false)}>
         <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={() => setShowCalendar(false)}>
-          <TouchableOpacity activeOpacity={1} style={styles.calendarModal}>
+          <TouchableOpacity
+            activeOpacity={1}
+            style={[styles.calendarModal, modo === 'anio' && styles.calendarModalAnio]}
+          >
             <View style={styles.previewHeader}>
               <Text style={styles.previewText}>{fechaPreview}</Text>
               <TouchableOpacity onPress={() => setShowCalendar(false)} style={styles.closeButton}>
@@ -285,6 +288,13 @@ const styles = StyleSheet.create({
     maxHeight: '85%',
     maxWidth: 420,
     overflow: 'hidden',
+  },
+  // En Android, "flex: 1" dentro de un contenedor con solo maxHeight (sin
+  // height definida) no siempre reserva espacio para el ScrollView de años
+  // (a diferencia de web). Al fijar una altura concreta en este modo, el
+  // ScrollView interno queda correctamente acotado y puede desplazarse.
+  calendarModalAnio: {
+    height: '85%',
   },
   previewHeader: {
     backgroundColor: colors.primary,

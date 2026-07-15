@@ -6,6 +6,8 @@ import { useHistorialViewModel } from '../../viewmodels/useHistorialViewModel';
 import { MedicosController } from '../../controllers/MedicosController';
 import { Medico } from '../../models/User';
 import Badge from '../../components/Badge';
+import ResponsiveContainer from '../../components/ResponsiveContainer';
+import ResponsiveGrid from '../../components/ResponsiveGrid';
 import { formatFechaCorta } from '../../utils/helpers';
 
 export default function HistorialScreen({ navigation }: any) {
@@ -35,22 +37,28 @@ export default function HistorialScreen({ navigation }: any) {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Mi historial</Text>
       </View>
-      <ScrollView contentContainerStyle={styles.body}>
-        <Text style={styles.section}>Próximas citas</Text>
-        {cargando ? (
-          <Text style={styles.muted}>Cargando…</Text>
-        ) : proximas.length === 0 ? (
-          <Text style={styles.muted}>No tienes próximas citas.</Text>
-        ) : (
-          proximas.map((c) => <Item key={c.id} cita={c} />)
-        )}
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <ResponsiveContainer style={styles.body}>
+          <Text style={styles.section}>Próximas citas</Text>
+          {cargando ? (
+            <Text style={styles.muted}>Cargando…</Text>
+          ) : proximas.length === 0 ? (
+            <Text style={styles.muted}>No tienes próximas citas.</Text>
+          ) : (
+            <ResponsiveGrid>
+              {proximas.map((c) => <Item key={c.id} cita={c} />)}
+            </ResponsiveGrid>
+          )}
 
-        <Text style={[styles.section, { marginTop: spacing.md }]}>Historial de citas</Text>
-        {historial.length === 0 ? (
-          <Text style={styles.muted}>Aún no hay historial.</Text>
-        ) : (
-          historial.map((c) => <Item key={c.id} cita={c} />)
-        )}
+          <Text style={[styles.section, { marginTop: spacing.md }]}>Historial de citas</Text>
+          {historial.length === 0 ? (
+            <Text style={styles.muted}>Aún no hay historial.</Text>
+          ) : (
+            <ResponsiveGrid>
+              {historial.map((c) => <Item key={c.id} cita={c} />)}
+            </ResponsiveGrid>
+          )}
+        </ResponsiveContainer>
       </ScrollView>
     </View>
   );

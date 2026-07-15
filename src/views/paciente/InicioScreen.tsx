@@ -7,6 +7,8 @@ import { useHomeViewModel } from '../../viewmodels/useHomeViewModel';
 import LocationBanner from '../../components/LocationBanner';
 import Avatar from '../../components/Avatar';
 import Badge from '../../components/Badge';
+import ResponsiveContainer from '../../components/ResponsiveContainer';
+import ResponsiveGrid from '../../components/ResponsiveGrid';
 
 const QUICK_ACTIONS: { key: string; label: string; icon: any; bg: string; screen: string }[] = [
   { key: 'agendar', label: 'Agendar\nCita', icon: 'calendar', bg: '#DCEBFF', screen: 'AgendarCita' },
@@ -21,7 +23,8 @@ export default function InicioScreen({ navigation }: any) {
   const nombreCorto = usuario?.nombre?.split(' ')[0] ?? '';
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={styles.container}>
+    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ flexGrow: 1 }}>
+      <ResponsiveContainer style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.hola}>HOLA {nombreCorto.toUpperCase()}</Text>
         <Pressable onPress={() => navigation.navigate('Perfil')}>
@@ -64,18 +67,21 @@ export default function InicioScreen({ navigation }: any) {
       {cargando ? (
         <Text style={styles.muted}>Cargando médicos…</Text>
       ) : (
-        medicos.map((m) => (
-          <Pressable key={m.id} style={styles.medicoCard} onPress={() => navigation.navigate('MedicoIndividual', { medicoId: m.id })}>
-            <Avatar nombre={m.nombre} size={48} />
-            <View style={{ flex: 1, marginLeft: spacing.sm }}>
-              <Text style={styles.medicoNombre}>{m.nombre}</Text>
-              <Text style={styles.medicoEsp}>{m.especialidad}</Text>
-            </View>
-            <Badge estado={m.activo ? 'Activo' : 'Inactivo'} />
-          </Pressable>
-        ))
+        <ResponsiveGrid>
+          {medicos.map((m) => (
+            <Pressable key={m.id} style={styles.medicoCard} onPress={() => navigation.navigate('MedicoIndividual', { medicoId: m.id })}>
+              <Avatar nombre={m.nombre} size={48} />
+              <View style={{ flex: 1, marginLeft: spacing.sm }}>
+                <Text style={styles.medicoNombre}>{m.nombre}</Text>
+                <Text style={styles.medicoEsp}>{m.especialidad}</Text>
+              </View>
+              <Badge estado={m.activo ? 'Activo' : 'Inactivo'} />
+            </Pressable>
+          ))}
+        </ResponsiveGrid>
       )}
       <View style={{ height: 24 }} />
+      </ResponsiveContainer>
     </ScrollView>
   );
 }

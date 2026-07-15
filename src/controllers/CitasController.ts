@@ -1,34 +1,31 @@
-import { db } from '../services/mockDatabase';
+import { apiClient } from '../services/apiClient';
 import { Cita, EstadoCita } from '../models/Cita';
-import { uid } from '../utils/helpers';
 
 export const CitasController = {
   async listarPorPaciente(pacienteId: string): Promise<Cita[]> {
-    const citas = await db.getCitas();
-    return citas
-      .filter((c) => c.pacienteId === pacienteId)
-      .sort((a, b) => (a.fechaISO + a.hora).localeCompare(b.fechaISO + b.hora));
+    const citas = await apiClient.get<Cita[]>(`/citas?pacienteId=${pacienteId}`);
+    return citas.sort((a, b) => (a.fechaISO + a.hora).localeCompare(b.fechaISO + b.hora));
   },
 
   async listarPorMedicoYFecha(medicoId: string, fechaISO: string): Promise<Cita[]> {
-    const citas = await db.getCitas();
-    return citas
-      .filter((c) => c.medicoId === medicoId && c.fechaISO === fechaISO)
-      .sort((a, b) => a.hora.localeCompare(b.hora));
+    const citas = await apiClient.get<Cita[]>(`/citas?medicoId=${medicoId}&fecha=${fechaISO}`);
+    return citas.sort((a, b) => a.hora.localeCompare(b.hora));
   },
 
   async listarPorMedico(medicoId: string): Promise<Cita[]> {
-    const citas = await db.getCitas();
-    return citas.filter((c) => c.medicoId === medicoId);
+    return apiClient.get<Cita[]>(`/citas?medicoId=${medicoId}`);
   },
 
   async listarTodas(): Promise<Cita[]> {
-    return db.getCitas();
+    return apiClient.get<Cita[]>('/citas');
   },
 
   async obtener(id: string): Promise<Cita | null> {
-    const citas = await db.getCitas();
-    return citas.find((c) => c.id === id) ?? null;
+    try {
+      return await apiClient.get<Cita>(`/citas/${id}`);
+    } catch {
+      return null;
+    }
   },
 
   async agendar(input: {
@@ -39,44 +36,33 @@ export const CitasController = {
     hora: string;
     motivo?: string;
   }): Promise<Cita> {
-    const citas = await db.getCitas();
-    const nueva: Cita = {
-      id: uid('cita-'),
-      pacienteId: input.pacienteId,
-      medicoId: input.medicoId,
-      especialidad: input.especialidad,
-      fechaISO: input.fechaISO,
-      hora: input.hora,
-      motivo: input.motivo,
-      estado: 'Confirmada',
-      createdAt: new Date().toISOString(),
-    };
-    await db.saveCitas([...citas, nueva]);
-    return nueva;
+    return apiClient.post<Cita>('/citas', { ...input, estado: 'Confirmada' });
   },
 
   async modificar(
     id: string,
     cambios: Partial<Pick<Cita, 'fechaISO' | 'hora' | 'motivo'>>
   ): Promise<Cita | null> {
-    const citas = await db.getCitas();
-    const idx = citas.findIndex((c) => c.id === id);
-    if (idx === -1) return null;
-    citas[idx] = { ...citas[idx], ...cambios };
-    await db.saveCitas(citas);
-    return citas[idx];
+    try {
+      return await apiClient.patch<Cita>(`/citas/${id}`, cambios);
+    } catch {
+      return null;
+    }
   },
 
   async cambiarEstado(id: string, estado: EstadoCita): Promise<Cita | null> {
-    const citas = await db.getCitas();
-    const idx = citas.findIndex((c) => c.id === id);
-    if (idx === -1) return null;
-    citas[idx] = { ...citas[idx], estado };
-    await db.saveCitas(citas);
-    return citas[idx];
+    try {
+      return await apiClient.patch<Cita>(`/citas/${id}`, { estado });
+    } catch {
+      return null;
+    }
   },
 
   async cancelar(id: string): Promise<Cita | null> {
-    return this.cambiarEstado(id, 'Cancelada');
+    try {
+      return await apiClient.patch<Cita>(`/citas/${id}/cancelar`);
+    } catch {
+      return null;
+    }
   },
 };

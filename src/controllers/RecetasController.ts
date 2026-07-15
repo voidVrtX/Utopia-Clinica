@@ -1,53 +1,49 @@
-import { db } from '../services/mockDatabase';
+import { apiClient, ApiError } from '../services/apiClient';
 import { Receta } from '../models/Receta';
-import { uid } from '../utils/helpers';
 
 export const RecetasController = {
   async listarPorPaciente(pacienteId: string): Promise<Receta[]> {
-    const recetas = await db.getRecetas();
-    return recetas.filter((r) => r.pacienteId === pacienteId).sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
+    const recetas = await apiClient.get<Receta[]>(`/recetas?pacienteId=${pacienteId}`);
+    return recetas.sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
   },
 
   async listarPorMedico(medicoId: string): Promise<Receta[]> {
-    const recetas = await db.getRecetas();
-    return recetas.filter((r) => r.medicoId === medicoId);
+    return apiClient.get<Receta[]>(`/recetas?medicoId=${medicoId}`);
   },
 
   async obtenerPorCodigo(codigoQR: string): Promise<Receta | null> {
-    const recetas = await db.getRecetas();
-    return recetas.find((r) => r.codigoQR === codigoQR) ?? null;
+    try {
+      return await apiClient.get<Receta>(`/recetas/qr/${encodeURIComponent(codigoQR)}`);
+    } catch {
+      return null;
+    }
   },
 
   async crear(input: Omit<Receta, 'id' | 'codigoQR' | 'valida'>): Promise<Receta> {
-    const recetas = await db.getRecetas();
-    const nueva: Receta = {
-      ...input,
-      id: uid('rec-'),
-      codigoQR: uid('UTOPIA-QR-'),
-      valida: true,
-    };
-    await db.saveRecetas([...recetas, nueva]);
-    return nueva;
+    return apiClient.post<Receta>('/recetas', input);
   },
 
   /** Usado por el rol de farmacia al escanear el código QR con la cámara */
   async invalidarPorCodigo(
     codigoQR: string,
-    farmaciaUserId: string
+    _farmaciaUserId: string
   ): Promise<{ receta: Receta | null; error?: string }> {
-    const recetas = await db.getRecetas();
-    const idx = recetas.findIndex((r) => r.codigoQR === codigoQR);
-    if (idx === -1) return { receta: null, error: 'Código QR no reconocido. No corresponde a una receta de Utopía.' };
-    if (!recetas[idx].valida) {
-      return { receta: recetas[idx], error: 'Esta receta ya fue utilizada anteriormente.' };
+    const receta = await this.obtenerPorCodigo(codigoQR);
+    if (!receta) {
+      return { receta: null, error: 'Código QR no reconocido. No corresponde a una receta de Utopía.' };
     }
-    recetas[idx] = {
-      ...recetas[idx],
-      valida: false,
-      invalidadaEn: new Date().toISOString(),
-      invalidadaPor: farmaciaUserId,
-    };
-    await db.saveRecetas(recetas);
-    return { receta: recetas[idx] };
+    if (!receta.valida) {
+      return { receta, error: 'Esta receta ya fue utilizada anteriormente.' };
+    }
+
+    try {
+      const actualizada = await apiClient.patch<Receta>(`/recetas/${receta.id}/invalidar`);
+      return { receta: actualizada };
+    } catch (e) {
+      return {
+        receta,
+        error: e instanceof ApiError ? e.message : 'No se pudo invalidar la receta.',
+      };
+    }
   },
 };

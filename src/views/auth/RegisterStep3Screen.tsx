@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, spacing } from '../../theme/theme';
 import TextField from '../../components/TextField';
 import Button from '../../components/Button';
+import ResponsiveContainer from '../../components/ResponsiveContainer';
 import { useRegisterDraft } from '../../context/RegisterDraftContext';
 import { useSession } from '../../context/SessionContext';
 import { AuthController } from '../../controllers/AuthController';
@@ -60,6 +61,7 @@ export default function RegisterStep3Screen({ navigation }: any) {
         <Text style={styles.brand}>UTOPÍA</Text>
       </View>
       <ScrollView contentContainerStyle={styles.body}>
+        <ResponsiveContainer maxWidth={480}>
         <View style={styles.card}>
           <Text style={styles.title}>Contacto de emergencia</Text>
           <Text style={styles.subtitle}>Registra una nueva cuenta</Text>
@@ -77,6 +79,7 @@ export default function RegisterStep3Screen({ navigation }: any) {
           )}
           <Button title="Terminar registro" onPress={terminar} loading={cargando} />
         </View>
+        </ResponsiveContainer>
       </ScrollView>
     </View>
   );

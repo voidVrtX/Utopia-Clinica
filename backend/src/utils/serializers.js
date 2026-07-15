@@ -1,6 +1,11 @@
 // Convierte filas snake_case de PostgreSQL al shape camelCase que usan
 // los modelos TypeScript de la app móvil (src/models/*.ts).
 
+function toDateOnly(value) {
+  if (!value) return undefined;
+  return value instanceof Date ? value.toISOString().slice(0, 10) : value;
+}
+
 function toUser(row) {
   if (!row) return null;
   const base = {
@@ -11,7 +16,7 @@ function toUser(row) {
     apellidoPaterno: row.apellido_paterno ?? undefined,
     apellidoMaterno: row.apellido_materno ?? undefined,
     telefono: row.telefono ?? undefined,
-    fechaNacimiento: row.fecha_nacimiento ?? undefined,
+    fechaNacimiento: toDateOnly(row.fecha_nacimiento),
     sexo: row.sexo ?? undefined,
     direccion: row.direccion ?? undefined,
     seguroMedico: row.seguro_medico ?? undefined,
@@ -19,6 +24,8 @@ function toUser(row) {
   };
 
   if (row.role === 'paciente') {
+    base.tipoSangre = row.tipo_sangre ?? undefined;
+    base.alergias = row.alergias ?? undefined;
     base.contactoEmergencia = row.contacto_emergencia ?? undefined;
   }
 
@@ -43,7 +50,7 @@ function toCita(row) {
     id: row.id,
     pacienteId: row.paciente_id,
     medicoId: row.medico_id,
-    fechaISO: row.fecha instanceof Date ? row.fecha.toISOString().slice(0, 10) : row.fecha,
+    fechaISO: toDateOnly(row.fecha),
     hora: row.hora,
     especialidad: row.especialidad,
     consultorio: row.consultorio ?? undefined,
@@ -63,7 +70,7 @@ function toReceta(row) {
     pacienteId: row.paciente_id,
     medicoId: row.medico_id,
     citaId: row.cita_id ?? undefined,
-    fecha: row.fecha instanceof Date ? row.fecha.toISOString().slice(0, 10) : row.fecha,
+    fecha: toDateOnly(row.fecha),
     diagnostico: row.diagnostico ?? undefined,
     tratamiento: row.tratamiento ?? undefined,
     observaciones: row.observaciones ?? undefined,
@@ -83,7 +90,7 @@ function toAviso(row) {
     tipo: row.tipo,
     titulo: row.titulo,
     detalle: row.detalle ?? undefined,
-    fechaISO: row.fecha instanceof Date ? row.fecha.toISOString().slice(0, 10) : row.fecha,
+    fechaISO: toDateOnly(row.fecha),
     hora: row.hora ?? undefined,
     leido: row.leido,
   };

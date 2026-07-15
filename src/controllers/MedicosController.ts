@@ -1,15 +1,24 @@
-import { db } from '../services/mockDatabase';
+import { apiClient } from '../services/apiClient';
 import { Medico } from '../models/User';
+import { fromISODate, toISODate } from '../utils/dateFormat';
+
+function normalizeMedico(medico: Medico): Medico {
+  return { ...medico, fechaNacimiento: fromISODate(medico.fechaNacimiento) };
+}
 
 export const MedicosController = {
   async listar(): Promise<Medico[]> {
-    const users = await db.getUsers();
-    return users.filter((u): u is Medico => u.role === 'medico');
+    const medicos = await apiClient.get<Medico[]>('/medicos');
+    return medicos.map(normalizeMedico);
   },
 
   async obtener(id: string): Promise<Medico | null> {
-    const medicos = await this.listar();
-    return medicos.find((m) => m.id === id) ?? null;
+    try {
+      const medico = await apiClient.get<Medico>(`/medicos/${id}`);
+      return normalizeMedico(medico);
+    } catch {
+      return null;
+    }
   },
 
   async buscar(query: string): Promise<Medico[]> {
@@ -22,12 +31,15 @@ export const MedicosController = {
   },
 
   async actualizar(id: string, cambios: Partial<Medico>): Promise<Medico | null> {
-    const users = await db.getUsers();
-    const idx = users.findIndex((u) => u.id === id);
-    if (idx === -1) return null;
-    users[idx] = { ...users[idx], ...cambios } as Medico;
-    await db.saveUsers(users);
-    return users[idx] as Medico;
+    try {
+      const medico = await apiClient.patch<Medico>(`/medicos/${id}`, {
+        ...cambios,
+        fechaNacimiento: cambios.fechaNacimiento ? toISODate(cambios.fechaNacimiento) : undefined,
+      });
+      return normalizeMedico(medico);
+    } catch {
+      return null;
+    }
   },
 
   async establecerActivo(id: string, activo: boolean): Promise<void> {

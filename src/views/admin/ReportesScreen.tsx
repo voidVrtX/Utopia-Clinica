@@ -2,6 +2,8 @@ import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
+import ResponsiveContainer from '../../components/ResponsiveContainer';
+import ResponsiveGrid from '../../components/ResponsiveGrid';
 
 const REPORTES = [
   { key: 'citas', titulo: 'Reportes de citas', sub: 'Resumen de citas agregadas', color: colors.info, icon: 'calendar' },
@@ -17,34 +19,38 @@ export default function ReportesScreen({ navigation }: any) {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Reportes</Text>
       </View>
-      <ScrollView contentContainerStyle={styles.body}>
-        <View style={styles.rangoBox}>
-          <Ionicons name="calendar-outline" size={14} color={colors.text} />
-          <Text style={styles.rangoText}>01/05/2026 - 31/05/2026</Text>
-          <Ionicons name="chevron-down" size={14} color={colors.text} />
-        </View>
-        <Pressable style={styles.avisoGeneralBtn} onPress={() => navigation.navigate('AvisoGeneral')}>
-          <Ionicons name="megaphone" size={18} color={colors.white} />
-          <Text style={styles.avisoGeneralText}>Enviar aviso general</Text>
-        </Pressable>
-        {REPORTES.map((r) => (
-          <Pressable
-            key={r.key}
-            style={styles.card}
-            onPress={() =>
-              r.key === 'avisos'
-                ? navigation.navigate('AvisosAdmin')
-                : navigation.navigate('ReporteDetalle', { tipo: r.key, titulo: r.titulo, color: r.color })
-            }
-          >
-            <Ionicons name={r.icon as any} size={22} color={r.color} style={{ marginRight: spacing.sm }} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.titulo}>{r.titulo}</Text>
-              <Text style={styles.sub}>{r.sub}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <ResponsiveContainer style={styles.body}>
+          <View style={styles.rangoBox}>
+            <Ionicons name="calendar-outline" size={14} color={colors.text} />
+            <Text style={styles.rangoText}>01/05/2026 - 31/05/2026</Text>
+            <Ionicons name="chevron-down" size={14} color={colors.text} />
+          </View>
+          <Pressable style={styles.avisoGeneralBtn} onPress={() => navigation.navigate('AvisoGeneral')}>
+            <Ionicons name="megaphone" size={18} color={colors.white} />
+            <Text style={styles.avisoGeneralText}>Enviar aviso general</Text>
           </Pressable>
-        ))}
+          <ResponsiveGrid>
+            {REPORTES.map((r) => (
+              <Pressable
+                key={r.key}
+                style={styles.card}
+                onPress={() =>
+                  r.key === 'avisos'
+                    ? navigation.navigate('AvisosAdmin')
+                    : navigation.navigate('ReporteDetalle', { tipo: r.key, titulo: r.titulo, color: r.color })
+                }
+              >
+                <Ionicons name={r.icon as any} size={22} color={r.color} style={{ marginRight: spacing.sm }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.titulo}>{r.titulo}</Text>
+                  <Text style={styles.sub}>{r.sub}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+              </Pressable>
+            ))}
+          </ResponsiveGrid>
+        </ResponsiveContainer>
       </ScrollView>
     </View>
   );

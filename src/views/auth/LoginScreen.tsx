@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, spacing } from '../../theme/theme';
 import TextField from '../../components/TextField';
 import Button from '../../components/Button';
+import ResponsiveContainer from '../../components/ResponsiveContainer';
 import { useLoginViewModel } from '../../viewmodels/useLoginViewModel';
 
 export default function LoginScreen({ navigation }: any) {
@@ -17,6 +18,7 @@ export default function LoginScreen({ navigation }: any) {
         <Text style={styles.brandSub}>CLÍNICA MÉDICA</Text>
       </View>
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+        <ResponsiveContainer maxWidth={480}>
         <View style={styles.card}>
           <Text style={styles.title}>¿Ya tienes cuenta?</Text>
           <Text style={styles.subtitle}>Inicia sesión</Text>
@@ -47,6 +49,7 @@ export default function LoginScreen({ navigation }: any) {
         <Text style={styles.hint}>
           Pacientes, médicos, administración y farmacia inician sesión desde esta misma pantalla.
         </Text>
+        </ResponsiveContainer>
       </ScrollView>
     </KeyboardAvoidingView>
   );

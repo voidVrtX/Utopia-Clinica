@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const { query } = require('../config/db');
+const { query, pool } = require('../config/db');
 const { toUser } = require('../utils/serializers');
 const asyncHandler = require('../utils/asyncHandler');
 
@@ -18,14 +18,14 @@ const list = asyncHandler(async (req, res) => {
   }
 
   const { rows } = await query(
-    `SELECT * FROM users WHERE ${clauses.join(' AND ')} ORDER BY nombre ASC`,
+    `SELECT * FROM usuarios_completos WHERE ${clauses.join(' AND ')} ORDER BY nombre ASC`,
     values
   );
   res.json(rows.map(toUser));
 });
 
 const getById = asyncHandler(async (req, res) => {
-  const { rows } = await query(`SELECT * FROM users WHERE id = $1 AND role = 'medico'`, [
+  const { rows } = await query(`SELECT * FROM usuarios_completos WHERE id = $1 AND role = 'medico'`, [
     req.params.id,
   ]);
   if (!rows[0]) return res.status(404).json({ error: 'Médico no encontrado' });
@@ -54,65 +54,109 @@ const create = asyncHandler(async (req, res) => {
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
+  const client = await pool.connect();
 
-  const { rows } = await query(
-    `INSERT INTO users (
-      email, password_hash, role, nombre, especialidad, institucion, anios_experiencia,
-      sobre_el_medico, areas_especialidad, ubicacion_atencion, telefono, fecha_nacimiento,
-      sexo, activo
-    ) VALUES ($1, $2, 'medico', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, TRUE)
-    RETURNING *`,
-    [
-      email.toLowerCase(),
-      passwordHash,
-      nombre,
-      especialidad,
-      institucion ?? null,
-      aniosExperiencia ?? null,
-      sobreElMedico ?? null,
-      areasEspecialidad ?? null,
-      ubicacionAtencion ?? null,
-      telefono ?? null,
-      fechaNacimiento ?? null,
-      sexo ?? null,
-    ]
-  );
+  try {
+    await client.query('BEGIN');
 
-  res.status(201).json(toUser(rows[0]));
+    const { rows: usuarioRows } = await client.query(
+      `INSERT INTO usuarios (email, password_hash, role, nombre, telefono, fecha_nacimiento, sexo)
+       VALUES ($1, $2, 'medico', $3, $4, $5, $6)
+       RETURNING id`,
+      [email.toLowerCase(), passwordHash, nombre, telefono ?? null, fechaNacimiento ?? null, sexo ?? null]
+    );
+
+    const medicoId = usuarioRows[0].id;
+
+    await client.query(
+      `INSERT INTO medicos (
+        id, especialidad, institucion, anios_experiencia, sobre_el_medico,
+        areas_especialidad, ubicacion_atencion, activo
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE)`,
+      [
+        medicoId,
+        especialidad,
+        institucion ?? null,
+        aniosExperiencia ?? null,
+        sobreElMedico ?? null,
+        areasEspecialidad ?? null,
+        ubicacionAtencion ?? null,
+      ]
+    );
+
+    await client.query('COMMIT');
+
+    const { rows } = await client.query('SELECT * FROM usuarios_completos WHERE id = $1', [medicoId]);
+    res.status(201).json(toUser(rows[0]));
+  } catch (err) {
+    await client.query('ROLLBACK');
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'Ese correo ya está registrado.' });
+    }
+    throw err;
+  } finally {
+    client.release();
+  }
 });
 
 const update = asyncHandler(async (req, res) => {
-  const fields = {
+  const usuarioFields = {
     nombre: req.body.nombre,
+    telefono: req.body.telefono,
+  };
+  const medicoFields = {
     especialidad: req.body.especialidad,
     institucion: req.body.institucion,
     anios_experiencia: req.body.aniosExperiencia,
     sobre_el_medico: req.body.sobreElMedico,
     areas_especialidad: req.body.areasEspecialidad,
     ubicacion_atencion: req.body.ubicacionAtencion,
-    telefono: req.body.telefono,
     activo: req.body.activo,
   };
 
-  const entries = Object.entries(fields).filter(([, v]) => v !== undefined);
-  if (entries.length === 0) {
+  const usuarioEntries = Object.entries(usuarioFields).filter(([, v]) => v !== undefined);
+  const medicoEntries = Object.entries(medicoFields).filter(([, v]) => v !== undefined);
+
+  if (usuarioEntries.length === 0 && medicoEntries.length === 0) {
     return res.status(400).json({ error: 'No hay campos para actualizar' });
   }
 
-  const setClause = entries.map(([col], i) => `${col} = $${i + 2}`).join(', ');
-  const values = entries.map(([, v]) => v);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
 
-  const { rows } = await query(
-    `UPDATE users SET ${setClause} WHERE id = $1 AND role = 'medico' RETURNING *`,
-    [req.params.id, ...values]
-  );
+    if (usuarioEntries.length > 0) {
+      const setClause = usuarioEntries.map(([col], i) => `${col} = $${i + 2}`).join(', ');
+      const values = usuarioEntries.map(([, v]) => v);
+      await client.query(
+        `UPDATE usuarios SET ${setClause} WHERE id = $1 AND role = 'medico'`,
+        [req.params.id, ...values]
+      );
+    }
 
+    if (medicoEntries.length > 0) {
+      const setClause = medicoEntries.map(([col], i) => `${col} = $${i + 2}`).join(', ');
+      const values = medicoEntries.map(([, v]) => v);
+      await client.query(`UPDATE medicos SET ${setClause} WHERE id = $1`, [req.params.id, ...values]);
+    }
+
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+
+  const { rows } = await query(`SELECT * FROM usuarios_completos WHERE id = $1 AND role = 'medico'`, [
+    req.params.id,
+  ]);
   if (!rows[0]) return res.status(404).json({ error: 'Médico no encontrado' });
   res.json(toUser(rows[0]));
 });
 
 const remove = asyncHandler(async (req, res) => {
-  const { rowCount } = await query(`DELETE FROM users WHERE id = $1 AND role = 'medico'`, [
+  const { rowCount } = await query(`DELETE FROM usuarios WHERE id = $1 AND role = 'medico'`, [
     req.params.id,
   ]);
   if (!rowCount) return res.status(404).json({ error: 'Médico no encontrado' });

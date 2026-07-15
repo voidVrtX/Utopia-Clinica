@@ -8,6 +8,7 @@ import ConfirmPasswordValidator from '../../components/ConfirmPasswordValidator'
 import Button from '../../components/Button';
 import PrivacyAgreement from '../../components/PrivacyAgreement';
 import ScreenHeader from '../../components/ScreenHeader';
+import ResponsiveContainer from '../../components/ResponsiveContainer';
 import { useRegisterDraft } from '../../context/RegisterDraftContext';
 
 export default function RegisterStep1Screen({ navigation }: any) {
@@ -63,6 +64,7 @@ export default function RegisterStep1Screen({ navigation }: any) {
         <Text style={styles.brandSub}>CLÍNICA MÉDICA</Text>
       </View>
       <ScrollView contentContainerStyle={styles.body}>
+        <ResponsiveContainer maxWidth={480}>
         <View style={styles.card}>
           <Text style={styles.title}>¿Eres nuevo?</Text>
           <Text style={styles.subtitle}>Registra una nueva cuenta</Text>
@@ -109,6 +111,7 @@ export default function RegisterStep1Screen({ navigation }: any) {
             </Text>
           </View>
         </View>
+        </ResponsiveContainer>
       </ScrollView>
     </View>
   );

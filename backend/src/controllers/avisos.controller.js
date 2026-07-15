@@ -50,4 +50,13 @@ const marcarLeido = asyncHandler(async (req, res) => {
   res.json(toAviso(rows[0]));
 });
 
-module.exports = { list, create, marcarLeido };
+// Usado por "Limpiar todo" en la pantalla de avisos del usuario.
+const removeAllForUser = asyncHandler(async (req, res) => {
+  const { paraUserId } = req.query;
+  if (!paraUserId) return res.status(400).json({ error: 'paraUserId es requerido' });
+
+  await query('DELETE FROM avisos WHERE para_user_id = $1', [paraUserId]);
+  res.status(204).send();
+});
+
+module.exports = { list, create, marcarLeido, removeAllForUser };

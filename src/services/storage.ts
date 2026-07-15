@@ -19,11 +19,7 @@ export async function removeItem(key: string): Promise<void> {
 }
 
 export const STORAGE_KEYS = {
-  USERS: 'utopia:users',
-  CITAS: 'utopia:citas',
-  RECETAS: 'utopia:recetas',
-  AVISOS: 'utopia:avisos',
+  AUTH_TOKEN: 'utopia:authToken',
+  SESSION_ACTIVE: 'utopia:sessionActive',
   LAST_SESSION_EMAIL: 'utopia:lastSessionEmail',
-  CURRENT_SESSION_EMAIL: 'utopia:currentSessionEmail',
-  SEEDED: 'utopia:seeded_v1',
 };

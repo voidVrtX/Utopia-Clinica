@@ -6,6 +6,8 @@ import { MedicosController } from '../../controllers/MedicosController';
 import { Medico } from '../../models/User';
 import CitaListItem from '../../components/CitaListItem';
 import { CitasController } from '../../controllers/CitasController';
+import ResponsiveContainer from '../../components/ResponsiveContainer';
+import ResponsiveGrid from '../../components/ResponsiveGrid';
 
 const TABS: FiltroCitas[] = ['Todas', 'Próximas', 'Completadas', 'Canceladas'];
 
@@ -41,32 +43,36 @@ export default function MisCitasScreen({ navigation }: any) {
           </Pressable>
         ))}
       </ScrollView>
-      <ScrollView contentContainerStyle={styles.body}>
-        {cargando ? (
-          <Text style={styles.muted}>Cargando citas…</Text>
-        ) : citas.length === 0 ? (
-          <Text style={styles.muted}>No tienes citas en esta categoría.</Text>
-        ) : (
-          citas.map((c) => (
-            <CitaListItem
-              key={c.id}
-              titulo="Hola"
-              subtitulo={`${c.especialidad}`}
-              fechaISO={c.fechaISO}
-              hora={c.hora}
-              estado={c.estado}
-              onPress={() => navigation.navigate('DetalleCita', { citaId: c.id })}
-              onModificar={
-                c.estado === 'Confirmada' || c.estado === 'Pendiente'
-                  ? () => navigation.navigate('ModificarCita', { citaId: c.id })
-                  : undefined
-              }
-              onCancelar={
-                c.estado === 'Confirmada' || c.estado === 'Pendiente' ? () => cancelar(c.id) : undefined
-              }
-            />
-          ))
-        )}
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <ResponsiveContainer style={styles.body}>
+          {cargando ? (
+            <Text style={styles.muted}>Cargando citas…</Text>
+          ) : citas.length === 0 ? (
+            <Text style={styles.muted}>No tienes citas en esta categoría.</Text>
+          ) : (
+            <ResponsiveGrid>
+              {citas.map((c) => (
+                <CitaListItem
+                  key={c.id}
+                  titulo="Hola"
+                  subtitulo={`${c.especialidad}`}
+                  fechaISO={c.fechaISO}
+                  hora={c.hora}
+                  estado={c.estado}
+                  onPress={() => navigation.navigate('DetalleCita', { citaId: c.id })}
+                  onModificar={
+                    c.estado === 'Confirmada' || c.estado === 'Pendiente'
+                      ? () => navigation.navigate('ModificarCita', { citaId: c.id })
+                      : undefined
+                  }
+                  onCancelar={
+                    c.estado === 'Confirmada' || c.estado === 'Pendiente' ? () => cancelar(c.id) : undefined
+                  }
+                />
+              ))}
+            </ResponsiveGrid>
+          )}
+        </ResponsiveContainer>
       </ScrollView>
     </View>
   );

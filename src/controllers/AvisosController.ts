@@ -1,24 +1,17 @@
-import { db } from '../services/mockDatabase';
+import { apiClient } from '../services/apiClient';
 import { Aviso } from '../models/Aviso';
-import { uid } from '../utils/helpers';
 
 export const AvisosController = {
   async listarPara(userId: string): Promise<Aviso[]> {
-    const avisos = await db.getAvisos();
-    return avisos
-      .filter((a) => a.paraUserId === userId)
-      .sort((a, b) => (a.fechaISO < b.fechaISO ? 1 : -1));
+    const avisos = await apiClient.get<Aviso[]>(`/avisos?paraUserId=${encodeURIComponent(userId)}`);
+    return avisos.sort((a, b) => (a.fechaISO < b.fechaISO ? 1 : -1));
   },
 
   async crear(input: Omit<Aviso, 'id' | 'leido'>): Promise<Aviso> {
-    const avisos = await db.getAvisos();
-    const nuevo: Aviso = { ...input, id: uid('av-'), leido: false };
-    await db.saveAvisos([...avisos, nuevo]);
-    return nuevo;
+    return apiClient.post<Aviso>('/avisos', input);
   },
 
   async limpiarTodos(userId: string): Promise<void> {
-    const avisos = await db.getAvisos();
-    await db.saveAvisos(avisos.filter((a) => a.paraUserId !== userId));
+    await apiClient.delete<void>(`/avisos?paraUserId=${encodeURIComponent(userId)}`);
   },
 };

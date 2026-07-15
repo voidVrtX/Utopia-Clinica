@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { AnyUser } from '../models/User';
 import { AuthController } from '../controllers/AuthController';
-import { db } from '../services/mockDatabase';
 import { habilitarRotacionLibre } from '../services/orientationService';
 
 interface SessionState {
@@ -27,14 +26,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      await db.init();
       await habilitarRotacionLibre();
       const currentEmail = await AuthController.getCurrentSessionEmail();
       const lastEmail = await AuthController.getLastSessionEmail();
       setUltimoEmail(lastEmail);
       if (currentEmail) {
         // ya había sesión activa (no se cerró explícitamente)
-        const u = await AuthController.resumeSession(currentEmail);
+        const u = await AuthController.resumeSession();
         setUsuarioState(u);
       } else if (lastEmail) {
         // hubo sesión antes: ofrecer reingreso con huella
@@ -60,15 +58,14 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const continuarConHuella = useCallback(async () => {
-    if (!ultimoEmail) return false;
-    const u = await AuthController.resumeSession(ultimoEmail);
+    const u = await AuthController.resumeSession();
     if (u) {
       setUsuarioState(u);
       setMostrarPromptHuella(false);
       return true;
     }
     return false;
-  }, [ultimoEmail]);
+  }, []);
 
   const omitirHuella = useCallback(() => {
     setMostrarPromptHuella(false);

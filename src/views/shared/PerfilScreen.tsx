@@ -5,6 +5,7 @@ import { colors, radius, shadow, spacing } from '../../theme/theme';
 import ScreenHeader from '../../components/ScreenHeader';
 import Avatar from '../../components/Avatar';
 import Button from '../../components/Button';
+import ResponsiveContainer from '../../components/ResponsiveContainer';
 import { usePerfilViewModel } from '../../viewmodels/usePerfilViewModel';
 
 export default function PerfilScreen({ navigation }: any) {
@@ -30,7 +31,8 @@ export default function PerfilScreen({ navigation }: any) {
           ) : null
         }
       />
-      <ScrollView contentContainerStyle={styles.body}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <ResponsiveContainer style={styles.body} maxWidth={560}>
         <View style={styles.headerRow}>
           <Avatar nombre={usuario.nombre} size={56} />
           <View style={{ marginLeft: spacing.sm }}>
@@ -69,6 +71,7 @@ export default function PerfilScreen({ navigation }: any) {
             <Button title="Cerrar sesión" variant="outline" onPress={logout} />
           )}
         </View>
+        </ResponsiveContainer>
       </ScrollView>
     </View>
   );

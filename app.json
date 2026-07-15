@@ -48,7 +48,8 @@
       "expo-local-authentication",
       "expo-camera",
       "expo-screen-orientation",
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-sharing"
     ],
     "extra": {
       "eas": {

@@ -3,6 +3,8 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
 import Badge from '../../components/Badge';
+import ResponsiveContainer from '../../components/ResponsiveContainer';
+import ResponsiveGrid from '../../components/ResponsiveGrid';
 import { useAdminMedicosViewModel } from '../../viewmodels/useAdminViewModels';
 
 export default function MedicosAdminScreen({ navigation }: any) {
@@ -16,25 +18,31 @@ export default function MedicosAdminScreen({ navigation }: any) {
           <Text style={styles.nuevo}>Nuevo</Text>
         </Pressable>
       </View>
-      <View style={styles.searchBox}>
-        <Ionicons name="search" size={16} color={colors.textMuted} />
-        <TextInput style={styles.searchInput} placeholder="Buscar médico" placeholderTextColor={colors.textMuted} value={query} onChangeText={setQuery} />
-      </View>
-      <ScrollView contentContainerStyle={styles.body}>
-        {cargando ? (
-          <Text style={styles.muted}>Cargando…</Text>
-        ) : (
-          medicos.map((m) => (
-            <Pressable key={m.id} style={styles.card} onPress={() => navigation.navigate('MedicoIndividualAdmin', { medicoId: m.id })}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.nombre}>{m.nombre}</Text>
-                <Text style={styles.sub}>{m.especialidad}</Text>
-              </View>
-              <Badge estado={m.activo ? 'Activo' : 'Inactivo'} />
-              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} style={{ marginLeft: 6 }} />
-            </Pressable>
-          ))
-        )}
+      <ResponsiveContainer style={{ width: '100%' }}>
+        <View style={styles.searchBox}>
+          <Ionicons name="search" size={16} color={colors.textMuted} />
+          <TextInput style={styles.searchInput} placeholder="Buscar médico" placeholderTextColor={colors.textMuted} value={query} onChangeText={setQuery} />
+        </View>
+      </ResponsiveContainer>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <ResponsiveContainer style={styles.body}>
+          {cargando ? (
+            <Text style={styles.muted}>Cargando…</Text>
+          ) : (
+            <ResponsiveGrid>
+              {medicos.map((m) => (
+                <Pressable key={m.id} style={styles.card} onPress={() => navigation.navigate('MedicoIndividualAdmin', { medicoId: m.id })}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.nombre}>{m.nombre}</Text>
+                    <Text style={styles.sub}>{m.especialidad}</Text>
+                  </View>
+                  <Badge estado={m.activo ? 'Activo' : 'Inactivo'} />
+                  <Ionicons name="chevron-forward" size={18} color={colors.textMuted} style={{ marginLeft: 6 }} />
+                </Pressable>
+              ))}
+            </ResponsiveGrid>
+          )}
+        </ResponsiveContainer>
       </ScrollView>
     </View>
   );

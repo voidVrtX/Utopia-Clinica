@@ -3,15 +3,30 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
 import Badge from '../../components/Badge';
+import ResponsiveContainer from '../../components/ResponsiveContainer';
+import ResponsiveGrid from '../../components/ResponsiveGrid';
 import { useHistorialMedicoViewModel } from '../../viewmodels/useHistorialMedicoViewModel';
 import { formatFechaCorta } from '../../utils/helpers';
+import { ExportService } from '../../services/exportService';
 
 export default function HistorialMedicoScreen({ navigation }: any) {
   const { proximas, cargando } = useHistorialMedicoViewModel();
   const [rango] = useState('01/05/2026 - 31/05/2026');
+  const [exportando, setExportando] = useState(false);
 
-  const exportar = (formato: 'PDF' | 'Excel') => {
-    Alert.alert('Exportar histórico', `El histórico se exportará como ${formato}.`);
+  const exportar = async (formato: 'PDF' | 'Excel') => {
+    setExportando(true);
+    try {
+      if (formato === 'PDF') {
+        await ExportService.exportarCitasPDF();
+      } else {
+        await ExportService.exportarCitasExcel();
+      }
+    } catch {
+      Alert.alert('Exportar histórico', 'No se pudo generar el archivo. Intenta de nuevo.');
+    } finally {
+      setExportando(false);
+    }
   };
 
   return (
@@ -19,33 +34,47 @@ export default function HistorialMedicoScreen({ navigation }: any) {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Mi historial</Text>
       </View>
-      <View style={styles.rangoRow}>
+      <ResponsiveContainer style={styles.rangoRow}>
         <View style={styles.rangoBox}>
           <Ionicons name="calendar-outline" size={14} color={colors.text} />
           <Text style={styles.rangoText}>{rango}</Text>
         </View>
-        <Pressable style={styles.exportBtn} onPress={() => exportar('PDF')}>
-          <Text style={styles.exportBtnText}>EXPORTAR</Text>
+        <Pressable
+          style={styles.exportBtn}
+          disabled={exportando}
+          onPress={() =>
+            Alert.alert('Exportar histórico', 'Elige el formato', [
+              { text: 'PDF', onPress: () => exportar('PDF') },
+              { text: 'Excel', onPress: () => exportar('Excel') },
+              { text: 'Cancelar', style: 'cancel' },
+            ])
+          }
+        >
+          <Text style={styles.exportBtnText}>{exportando ? 'Generando…' : 'EXPORTAR'}</Text>
         </Pressable>
-      </View>
-      <ScrollView contentContainerStyle={styles.body}>
-        <Text style={styles.section}>PRÓXIMAS CITAS</Text>
-        {cargando ? (
-          <Text style={styles.muted}>Cargando…</Text>
-        ) : proximas.length === 0 ? (
-          <Text style={styles.muted}>Sin citas próximas.</Text>
-        ) : (
-          proximas.map((c) => (
-            <Pressable key={c.id} style={styles.card} onPress={() => navigation.navigate('DetalleCitaMedico', { citaId: c.id })}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.nombre}>Paciente</Text>
-                <Text style={styles.sub}>{formatFechaCorta(c.fechaISO)} · {c.hora}</Text>
-                <Text style={styles.motivo}>Motivo: {c.motivo ?? '—'}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-            </Pressable>
-          ))
-        )}
+      </ResponsiveContainer>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <ResponsiveContainer style={styles.body}>
+          <Text style={styles.section}>PRÓXIMAS CITAS</Text>
+          {cargando ? (
+            <Text style={styles.muted}>Cargando…</Text>
+          ) : proximas.length === 0 ? (
+            <Text style={styles.muted}>Sin citas próximas.</Text>
+          ) : (
+            <ResponsiveGrid>
+              {proximas.map((c) => (
+                <Pressable key={c.id} style={styles.card} onPress={() => navigation.navigate('DetalleCitaMedico', { citaId: c.id })}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.nombre}>Paciente</Text>
+                    <Text style={styles.sub}>{formatFechaCorta(c.fechaISO)} · {c.hora}</Text>
+                    <Text style={styles.motivo}>Motivo: {c.motivo ?? '—'}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+                </Pressable>
+              ))}
+            </ResponsiveGrid>
+          )}
+        </ResponsiveContainer>
       </ScrollView>
     </View>
   );

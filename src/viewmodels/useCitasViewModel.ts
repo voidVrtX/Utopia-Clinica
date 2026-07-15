@@ -53,22 +53,34 @@ export function useAgendarCitaViewModel() {
       setError('Selecciona especialidad, fecha y horario.');
       return;
     }
+    if (!medicoId) {
+      setError('Elige un médico disponible para esta especialidad.');
+      return;
+    }
     setError(null);
     setEnviando(true);
     const cita = await CitasController.agendar({
       pacienteId: usuario.id,
-      medicoId: medicoId ?? 'medico-1',
+      medicoId,
       especialidad,
       fechaISO,
       hora,
       motivo: motivo.trim() || undefined,
     });
+    const hoyISO = new Date().toISOString().slice(0, 10);
     await AvisosController.crear({
       paraUserId: usuario.id,
       tipo: 'Cita Confirmada',
       titulo: 'Cita Confirmada',
       detalle: `Tu cita de ${especialidad} ha sido agendada.`,
-      fechaISO: new Date().toISOString().slice(0, 10),
+      fechaISO: hoyISO,
+    });
+    await AvisosController.crear({
+      paraUserId: medicoId,
+      tipo: 'Cita Confirmada',
+      titulo: 'Nueva cita agendada',
+      detalle: `${usuario.nombre} agendó una cita de ${especialidad} el ${fechaISO} a las ${hora}.`,
+      fechaISO: hoyISO,
     });
     setEnviando(false);
     onOk(cita.id);

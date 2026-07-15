@@ -126,7 +126,6 @@ export default function DocumentScanner({
           ref={cameraRef}
           style={styles.camera}
           facing="back"
-          zoom={0}
         >
           <View style={styles.cameraOverlay}>
             {/* Guía visual para documento */}

@@ -5,7 +5,6 @@ import RegistrarMedicoScreen from '../views/admin/RegistrarMedicoScreen';
 import MedicoIndividualAdminScreen from '../views/admin/MedicoIndividualAdminScreen';
 import DetalleCitaAdminScreen from '../views/admin/DetalleCitaAdminScreen';
 import ReporteDetalleScreen from '../views/admin/ReporteDetalleScreen';
-import ExportacionScreen from '../views/admin/ExportacionScreen';
 import AvisoGeneralAdminScreen from '../views/admin/AvisoGeneralAdminScreen';
 import AvisosScreen from '../views/shared/AvisosScreen';
 import PerfilScreen from '../views/shared/PerfilScreen';
@@ -20,7 +19,6 @@ export default function AdminNavigator() {
       <Stack.Screen name="MedicoIndividualAdmin" component={MedicoIndividualAdminScreen} />
       <Stack.Screen name="DetalleCitaAdmin" component={DetalleCitaAdminScreen} />
       <Stack.Screen name="ReporteDetalle" component={ReporteDetalleScreen} />
-      <Stack.Screen name="Exportacion" component={ExportacionScreen} />
       <Stack.Screen name="AvisoGeneral" component={AvisoGeneralAdminScreen} />
       <Stack.Screen name="AvisosAdmin" component={AvisosScreen} initialParams={{ userId: 'admin' }} />
       <Stack.Screen name="Perfil" component={PerfilScreen} />

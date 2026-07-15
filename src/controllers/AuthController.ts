@@ -1,21 +1,37 @@
-import { db } from '../services/mockDatabase';
+import { apiClient, ApiError, setAuthToken } from '../services/apiClient';
 import { getItem, setItem, removeItem, STORAGE_KEYS } from '../services/storage';
 import { AnyUser, Medico, Paciente } from '../models/User';
-import { uid } from '../utils/helpers';
+import { toISODate, fromISODate } from '../utils/dateFormat';
+
+function normalizeUser<T extends AnyUser>(user: T): T {
+  return { ...user, fechaNacimiento: fromISODate(user.fechaNacimiento) } as T;
+}
+
+async function persistSession(token: string, email: string) {
+  setAuthToken(token);
+  await setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+  await setItem(STORAGE_KEYS.SESSION_ACTIVE, true);
+  await setItem(STORAGE_KEYS.LAST_SESSION_EMAIL, email);
+}
 
 export const AuthController = {
   async login(email: string, password: string): Promise<{ user: AnyUser | null; error?: string }> {
-    const users = await db.getUsers();
-    const found = users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
-    if (!found) return { user: null, error: 'No existe una cuenta con ese correo.' };
-    if (found.password !== password) return { user: null, error: 'Contraseña incorrecta.' };
-    await setItem(STORAGE_KEYS.LAST_SESSION_EMAIL, found.email);
-    await setItem(STORAGE_KEYS.CURRENT_SESSION_EMAIL, found.email);
-    return { user: found };
+    try {
+      const res = await apiClient.post<{ token: string; user: AnyUser }>('/auth/login', {
+        email,
+        password,
+      });
+      await persistSession(res.token, res.user.email);
+      return { user: normalizeUser(res.user) };
+    } catch (e) {
+      return { user: null, error: e instanceof ApiError ? e.message : 'No se pudo iniciar sesión.' };
+    }
   },
 
   async logout() {
-    await removeItem(STORAGE_KEYS.CURRENT_SESSION_EMAIL);
+    // Se conserva el token y el último correo para poder reingresar con huella;
+    // solo se marca la sesión como inactiva (requiere biometría/login para reanudar).
+    await setItem(STORAGE_KEYS.SESSION_ACTIVE, false);
   },
 
   async getLastSessionEmail(): Promise<string | null> {
@@ -23,21 +39,33 @@ export const AuthController = {
   },
 
   async getCurrentSessionEmail(): Promise<string | null> {
-    return getItem<string>(STORAGE_KEYS.CURRENT_SESSION_EMAIL);
+    const activa = await getItem<boolean>(STORAGE_KEYS.SESSION_ACTIVE);
+    if (!activa) return null;
+    return getItem<string>(STORAGE_KEYS.LAST_SESSION_EMAIL);
   },
 
-  async resumeSession(email: string): Promise<AnyUser | null> {
-    const users = await db.getUsers();
-    const found = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (found) {
-      await setItem(STORAGE_KEYS.CURRENT_SESSION_EMAIL, found.email);
+  /** Reanuda la sesión usando el token guardado (login normal o huella). */
+  async resumeSession(): Promise<AnyUser | null> {
+    const token = await getItem<string>(STORAGE_KEYS.AUTH_TOKEN);
+    if (!token) return null;
+    setAuthToken(token);
+    try {
+      const user = await apiClient.get<AnyUser>('/auth/me');
+      await setItem(STORAGE_KEYS.SESSION_ACTIVE, true);
+      return normalizeUser(user);
+    } catch {
+      setAuthToken(null);
+      await removeItem(STORAGE_KEYS.AUTH_TOKEN);
+      await setItem(STORAGE_KEYS.SESSION_ACTIVE, false);
+      return null;
     }
-    return found ?? null;
   },
 
   async verificarEmailExistente(email: string): Promise<boolean> {
-    const users = await db.getUsers();
-    return users.some((u) => u.email.toLowerCase() === email.toLowerCase());
+    const res = await apiClient.get<{ exists: boolean }>(
+      `/auth/check-email?email=${encodeURIComponent(email)}`
+    );
+    return res.exists;
   },
 
   async registrarPaciente(data: {
@@ -55,37 +83,35 @@ export const AuthController = {
     alergias?: string[];
     contactoEmergencia: { nombreCompleto: string; parentesco: string; telefono: string };
   }): Promise<{ user: Paciente | null; error?: string }> {
-    const users = await db.getUsers();
-    if (users.some((u) => u.email.toLowerCase() === data.email.toLowerCase())) {
-      return { user: null, error: 'Ese correo ya está registrado.' };
+    try {
+      const res = await apiClient.post<{ token: string; user: Paciente }>('/auth/register', {
+        ...data,
+        fechaNacimiento: toISODate(data.fechaNacimiento),
+      });
+      await persistSession(res.token, res.user.email);
+      return { user: normalizeUser(res.user) };
+    } catch (e) {
+      return {
+        user: null,
+        error: e instanceof ApiError ? e.message : 'No se pudo completar el registro.',
+      };
     }
-    const nuevo: Paciente = {
-      id: uid('paciente-'),
-      email: data.email.trim(),
-      password: data.password,
-      role: 'paciente',
-      nombre: `${data.nombre} ${data.apellidoPaterno}`.trim(),
-      apellidoPaterno: data.apellidoPaterno,
-      apellidoMaterno: data.apellidoMaterno,
-      sexo: data.sexo,
-      fechaNacimiento: data.fechaNacimiento,
-      telefono: data.telefono,
-      direccion: data.direccion,
-      seguroMedico: data.seguroMedico,
-      tipoSangre: data.tipoSangre,
-      alergias: data.alergias,
-      contactoEmergencia: data.contactoEmergencia,
-    };
-    await db.saveUsers([...users, nuevo]);
-    await setItem(STORAGE_KEYS.LAST_SESSION_EMAIL, nuevo.email);
-    await setItem(STORAGE_KEYS.CURRENT_SESSION_EMAIL, nuevo.email);
-    return { user: nuevo };
   },
 
   async crearMedico(data: Omit<Medico, 'id' | 'role'>): Promise<Medico> {
-    const users = await db.getUsers();
-    const nuevo: Medico = { ...data, id: uid('medico-'), role: 'medico' };
-    await db.saveUsers([...users, nuevo]);
-    return nuevo;
+    const res = await apiClient.post<Medico>('/medicos', {
+      ...data,
+      fechaNacimiento: toISODate(data.fechaNacimiento),
+    });
+    return normalizeUser(res);
+  },
+
+  /** Actualiza el perfil propio (pacientes; médicos usan MedicosController.actualizar). */
+  async actualizarPerfil(userId: string, cambios: Partial<AnyUser>): Promise<AnyUser | null> {
+    const res = await apiClient.patch<AnyUser>(`/users/${userId}`, {
+      ...cambios,
+      fechaNacimiento: cambios.fechaNacimiento ? toISODate(cambios.fechaNacimiento) : undefined,
+    });
+    return normalizeUser(res);
   },
 };

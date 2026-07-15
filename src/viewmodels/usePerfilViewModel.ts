@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSession } from '../context/SessionContext';
 import { MedicosController } from '../controllers/MedicosController';
-import { db } from '../services/mockDatabase';
+import { AuthController } from '../controllers/AuthController';
 import { AnyUser } from '../models/User';
 
 export function usePerfilViewModel() {
@@ -12,18 +12,11 @@ export function usePerfilViewModel() {
   const guardar = async (cambios: Partial<AnyUser>) => {
     if (!usuario) return;
     setGuardando(true);
-    if (usuario.role === 'medico') {
-      const actualizado = await MedicosController.actualizar(usuario.id, cambios as any);
-      if (actualizado) setUsuario(actualizado);
-    } else {
-      const users = await db.getUsers();
-      const idx = users.findIndex((u) => u.id === usuario.id);
-      if (idx !== -1) {
-        users[idx] = { ...users[idx], ...cambios } as AnyUser;
-        await db.saveUsers(users);
-        setUsuario(users[idx]);
-      }
-    }
+    const actualizado =
+      usuario.role === 'medico'
+        ? await MedicosController.actualizar(usuario.id, cambios as any)
+        : await AuthController.actualizarPerfil(usuario.id, cambios);
+    if (actualizado) setUsuario(actualizado);
     setGuardando(false);
     setEditando(false);
   };

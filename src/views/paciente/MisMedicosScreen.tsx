@@ -4,6 +4,8 @@ import { colors, radius, shadow, spacing } from '../../theme/theme';
 import ScreenHeader from '../../components/ScreenHeader';
 import Avatar from '../../components/Avatar';
 import Badge from '../../components/Badge';
+import ResponsiveContainer from '../../components/ResponsiveContainer';
+import ResponsiveGrid from '../../components/ResponsiveGrid';
 import { useMedicosViewModel } from '../../viewmodels/useMedicosViewModel';
 
 export default function MisMedicosScreen({ navigation }: any) {
@@ -12,21 +14,25 @@ export default function MisMedicosScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScreenHeader title="Mis Médicos" onBack={() => navigation.goBack()} />
-      <ScrollView contentContainerStyle={styles.body}>
-        {cargando ? (
-          <Text style={styles.muted}>Cargando…</Text>
-        ) : (
-          medicos.map((m) => (
-            <Pressable key={m.id} style={styles.item} onPress={() => navigation.navigate('MedicoIndividual', { medicoId: m.id })}>
-              <Avatar nombre={m.nombre} />
-              <View style={{ flex: 1, marginLeft: spacing.sm }}>
-                <Text style={styles.nombre}>{m.nombre}</Text>
-                <Text style={styles.esp}>{m.especialidad}</Text>
-              </View>
-              <Badge estado={m.activo ? 'Activo' : 'Inactivo'} />
-            </Pressable>
-          ))
-        )}
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <ResponsiveContainer style={styles.body}>
+          {cargando ? (
+            <Text style={styles.muted}>Cargando…</Text>
+          ) : (
+            <ResponsiveGrid>
+              {medicos.map((m) => (
+                <Pressable key={m.id} style={styles.item} onPress={() => navigation.navigate('MedicoIndividual', { medicoId: m.id })}>
+                  <Avatar nombre={m.nombre} />
+                  <View style={{ flex: 1, marginLeft: spacing.sm }}>
+                    <Text style={styles.nombre}>{m.nombre}</Text>
+                    <Text style={styles.esp}>{m.especialidad}</Text>
+                  </View>
+                  <Badge estado={m.activo ? 'Activo' : 'Inactivo'} />
+                </Pressable>
+              ))}
+            </ResponsiveGrid>
+          )}
+        </ResponsiveContainer>
       </ScrollView>
     </View>
   );
