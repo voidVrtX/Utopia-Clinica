@@ -7,50 +7,52 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+
     "splash": {
       "backgroundColor": "#0B6E58"
     },
+
     "assetBundlePatterns": [
       "**/*"
     ],
+
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.utopia.clinica",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Utopía usa tu ubicación para mostrarte qué tan lejos estás de la clínica.",
-        "NSFaceIDUsageDescription": "Utopía usa Face ID / huella para iniciar sesión rápidamente con tu última cuenta.",
-        "NSCameraUsageDescription": "Utopía usa la cámara para escanear el código QR de las recetas y para capturar documentos como tu identificación."
+        "NSFaceIDUsageDescription": "Utopía usa Face ID o huella para iniciar sesión rápidamente con tu última cuenta.",
+        "NSCameraUsageDescription": "Utopía usa la cámara para escanear códigos QR y capturar documentos."
       }
     },
+
     "android": {
       "package": "com.utopia.clinica",
       "permissions": [
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "CAMERA",
-        "USE_BIOMETRIC",
-        "USE_FINGERPRINT",
-        "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.CAMERA",
         "android.permission.USE_BIOMETRIC",
         "android.permission.USE_FINGERPRINT",
-        "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ]
     },
+
     "web": {
-      "favicon": "./assets/icon.png",
       "bundler": "metro",
-      "output": "single"
+      "output": "single",
+      "favicon": "./assets/icon.png"
     },
+
     "plugins": [
+      "expo-camera",
       "expo-location",
       "expo-local-authentication",
-      "expo-camera",
       "expo-screen-orientation",
-      "expo-status-bar",
-      "expo-sharing"
+      "expo-sharing",
+      "expo-font"
     ],
+
     "extra": {
       "eas": {
         "projectId": "85464eb9-0d34-4a9b-abd4-9672ddf37e31"

@@ -44,7 +44,7 @@ export default function CameraScanner({
   return (
     <View style={styles.wrap}>
       <CameraView
-        style={StyleSheet.absoluteFillObject}
+        style={[StyleSheet.absoluteFillObject, styles.camera]}
         facing="back"
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
         onBarcodeScanned={
@@ -69,7 +69,8 @@ export default function CameraScanner({
 }
 
 const styles = StyleSheet.create({
-  wrap: { flex: 1, overflow: 'hidden', borderRadius: radius.md, backgroundColor: '#000' },
+  wrap: { flex: 1, backgroundColor: '#000' },
+  camera: { borderRadius: radius.md },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg, gap: spacing.sm },
   msg: { color: colors.textMuted, textAlign: 'center', marginBottom: spacing.sm },
   overlay: { flex: 1, alignItems: 'center', justifyContent: 'center' },
