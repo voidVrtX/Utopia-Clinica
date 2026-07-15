@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { CameraView } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,15 +14,55 @@ export default function CameraScanner({
   activo?: boolean;
 }) {
   const { estado, puedeVolverAPreguntar, solicitarPermiso, abrirConfiguracion } = useCameraPermission();
-  const yaLeido = useRef(false);
+  const [scannerActivo, setScannerActivo] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const listenerRef = useRef<any>(null);
+
+  const iniciarEscaner = async () => {
+    setCameraError(null);
+
+    if (!CameraView.isModernBarcodeScannerAvailable) {
+      setCameraError('El escáner moderno no está disponible en este dispositivo.');
+      return;
+    }
+
+    try {
+      listenerRef.current = CameraView.onModernBarcodeScanned(({ data }) => {
+        if (!activo) return;
+        onEscaneado(data);
+      });
+      setScannerActivo(true);
+      await CameraView.launchScanner({ barcodeTypes: ['qr'] });
+    } catch (error: any) {
+      console.log('[CAMERA] MODERN SCANNER ERROR:', error?.message ?? error);
+      setCameraError(
+        error?.message
+          ? `No se pudo iniciar el escáner: ${error.message}`
+          : 'No se pudo iniciar el escáner QR.'
+      );
+      setScannerActivo(false);
+      listenerRef.current?.remove?.();
+    }
+  };
 
   useEffect(() => {
     if (estado === 'indeterminado') {
       solicitarPermiso();
+      return;
     }
-    // Solo se solicita una vez al detectar que aún no se ha resuelto el permiso.
+
+    if (estado === 'concedido' && activo && !scannerActivo) {
+      iniciarEscaner();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [estado]);
+  }, [estado, activo]);
+
+  useEffect(() => {
+    return () => {
+      listenerRef.current?.remove?.();
+      setScannerActivo(false);
+    };
+  }, []);
 
   if (estado === 'cargando' || estado === 'indeterminado') {
     return <View style={styles.center} />;
@@ -43,26 +83,10 @@ export default function CameraScanner({
 
   return (
     <View style={styles.wrap}>
-      <CameraView
-        style={[StyleSheet.absoluteFillObject, styles.camera]}
-        facing="back"
-        barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-        onBarcodeScanned={
-          activo
-            ? ({ data }) => {
-                if (yaLeido.current) return;
-                yaLeido.current = true;
-                onEscaneado(data);
-                setTimeout(() => {
-                  yaLeido.current = false;
-                }, 1500);
-              }
-            : undefined
-        }
-      />
       <View style={styles.overlay} pointerEvents="none">
         <View style={styles.frame} />
-        <Text style={styles.hint}>Encuadra el código QR de la receta</Text>
+        <Text style={styles.hint}>Escáner QR activo. Apunta el código al centro.</Text>
+        {cameraError ? <Text style={styles.errorText}>{cameraError}</Text> : null}
       </View>
     </View>
   );
@@ -76,4 +100,5 @@ const styles = StyleSheet.create({
   overlay: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   frame: { width: 220, height: 220, borderWidth: 3, borderColor: colors.white, borderRadius: radius.md },
   hint: { color: colors.white, marginTop: spacing.md, fontWeight: '600' },
+  errorText: { color: colors.danger, marginTop: spacing.sm, textAlign: 'center', paddingHorizontal: spacing.lg },
 });

@@ -1,5 +1,6 @@
 import { apiClient, ApiError } from '../services/apiClient';
 import { Receta } from '../models/Receta';
+import { MedicamentoReceta } from '../models/Medicamento';
 
 export const RecetasController = {
   async listarPorPaciente(pacienteId: string): Promise<Receta[]> {
@@ -21,6 +22,10 @@ export const RecetasController = {
 
   async crear(input: Omit<Receta, 'id' | 'codigoQR' | 'valida'>): Promise<Receta> {
     return apiClient.post<Receta>('/recetas', input);
+  },
+
+  async entregar(recetaId: string, medicamentos: MedicamentoReceta[]) {
+    return apiClient.patch<{ receta: Receta; reemplazo?: Receta }>(`/recetas/${recetaId}/entrega`, { medicamentos });
   },
 
   /** Usado por el rol de farmacia al escanear el código QR con la cámara */

@@ -76,6 +76,8 @@ function toReceta(row) {
     observaciones: row.observaciones ?? undefined,
     presionArterial: row.presion_arterial ?? undefined,
     temperatura: row.temperatura ?? undefined,
+    medicamentos: row.medicamentos ?? [],
+    recetaOrigenId: row.receta_origen_id ?? undefined,
     valida: row.valida,
     invalidadaEn: row.invalidada_en ?? undefined,
     invalidadaPor: row.invalidada_por ?? undefined,

@@ -24,7 +24,7 @@ async function seed() {
 
     // Orden seguro por FKs: hojas primero, tablas base al final.
     await client.query(
-      'TRUNCATE avisos, recetas, citas, pacientes, medicos, administradores, farmacias, usuarios RESTART IDENTITY CASCADE'
+      'TRUNCATE avisos, recetas, medicamentos_catalogo, citas, pacientes, medicos, administradores, farmacias, usuarios RESTART IDENTITY CASCADE'
     );
 
     const usuarios = [
@@ -192,6 +192,117 @@ async function seed() {
       ]);
     }
 
+    const medicamentosCatalogo = [
+      { nombre: 'Paracetamol', principio_activo: 'Paracetamol', presentacion: 'Tabletas 500 mg' },
+      { nombre: 'Ibuprofeno', principio_activo: 'Ibuprofeno', presentacion: 'Tabletas 400 mg' },
+      { nombre: 'Amoxicilina', principio_activo: 'Amoxicilina', presentacion: 'Cápsulas 500 mg' },
+      { nombre: 'Claritromicina', principio_activo: 'Claritromicina', presentacion: 'Tabletas 500 mg' },
+      { nombre: 'Metformina', principio_activo: 'Metformina', presentacion: 'Tabletas 850 mg' },
+      { nombre: 'Losartán', principio_activo: 'Losartán', presentacion: 'Tabletas 50 mg' },
+      { nombre: 'Enalapril', principio_activo: 'Enalapril', presentacion: 'Tabletas 10 mg' },
+      { nombre: 'Amlodipino', principio_activo: 'Amlodipino', presentacion: 'Tabletas 5 mg' },
+      { nombre: 'Simvastatina', principio_activo: 'Simvastatina', presentacion: 'Tabletas 20 mg' },
+      { nombre: 'Atorvastatina', principio_activo: 'Atorvastatina', presentacion: 'Tabletas 20 mg' },
+      { nombre: 'Omeprazol', principio_activo: 'Omeprazol', presentacion: 'Tabletas 20 mg' },
+      { nombre: 'Lansoprazol', principio_activo: 'Lansoprazol', presentacion: 'Tabletas 30 mg' },
+      { nombre: 'Pantoprazol', principio_activo: 'Pantoprazol', presentacion: 'Tabletas 40 mg' },
+      { nombre: 'Levotiroxina', principio_activo: 'Levotiroxina sódica', presentacion: 'Tabletas 50 mcg' },
+      { nombre: 'Alprazolam', principio_activo: 'Alprazolam', presentacion: 'Tabletas 0.5 mg' },
+      { nombre: 'Sertralina', principio_activo: 'Sertralina', presentacion: 'Tabletas 50 mg' },
+      { nombre: 'Fluoxetina', principio_activo: 'Fluoxetina', presentacion: 'Tabletas 20 mg' },
+      { nombre: 'Escitalopram', principio_activo: 'Escitalopram', presentacion: 'Tabletas 10 mg' },
+      { nombre: 'Diazepam', principio_activo: 'Diazepam', presentacion: 'Tabletas 5 mg' },
+      { nombre: 'Clonazepam', principio_activo: 'Clonazepam', presentacion: 'Tabletas 0.5 mg' },
+      { nombre: 'Ranitidina', principio_activo: 'Ranitidina', presentacion: 'Tabletas 150 mg' },
+      { nombre: 'Cetirizina', principio_activo: 'Cetirizina', presentacion: 'Tabletas 10 mg' },
+      { nombre: 'Loratadina', principio_activo: 'Loratadina', presentacion: 'Tabletas 10 mg' },
+      { nombre: 'Fexofenadina', principio_activo: 'Fexofenadina', presentacion: 'Tabletas 120 mg' },
+      { nombre: 'Naproxeno', principio_activo: 'Naproxeno', presentacion: 'Tabletas 250 mg' },
+      { nombre: 'Diclofenaco', principio_activo: 'Diclofenaco', presentacion: 'Tabletas 50 mg' },
+      { nombre: 'Hidroxicloroquina', principio_activo: 'Hidroxicloroquina', presentacion: 'Tabletas 200 mg' },
+      { nombre: 'Escitalopram', principio_activo: 'Escitalopram', presentacion: 'Tabletas 10 mg' },
+      { nombre: 'Captopril', principio_activo: 'Captopril', presentacion: 'Tabletas 25 mg' },
+      { nombre: 'Furosemida', principio_activo: 'Furosemida', presentacion: 'Tabletas 40 mg' },
+      { nombre: 'Hidroclorotiazida', principio_activo: 'Hidroclorotiazida', presentacion: 'Tabletas 25 mg' },
+      { nombre: 'Metoprolol', principio_activo: 'Metoprolol', presentacion: 'Tabletas 50 mg' },
+      { nombre: 'Propranolol', principio_activo: 'Propranolol', presentacion: 'Tabletas 40 mg' },
+      { nombre: 'Salbutamol', principio_activo: 'Salbutamol', presentacion: 'Inhalador' },
+      { nombre: 'Budesonida', principio_activo: 'Budesonida', presentacion: 'Inhalador' },
+      { nombre: 'Fluticasona', principio_activo: 'Fluticasona', presentacion: 'Inhalador' },
+      { nombre: 'Prednisona', principio_activo: 'Prednisona', presentacion: 'Tabletas 20 mg' },
+      { nombre: 'Hidrocortisona', principio_activo: 'Hidrocortisona', presentacion: 'Crema 1%' },
+      { nombre: 'Ketorolaco', principio_activo: 'Ketorolaco', presentacion: 'Tabletas 10 mg' },
+      { nombre: 'Tramadol', principio_activo: 'Tramadol', presentacion: 'Tabletas 50 mg' },
+      { nombre: 'Codeína', principio_activo: 'Codeína', presentacion: 'Tabletas 30 mg' },
+      { nombre: 'Clonidina', principio_activo: 'Clonidina', presentacion: 'Tabletas 0.1 mg' },
+      { nombre: 'Dexametasona', principio_activo: 'Dexametasona', presentacion: 'Tabletas 4 mg' },
+      { nombre: 'Rizatriptán', principio_activo: 'Rizatriptán', presentacion: 'Tabletas 10 mg' },
+      { nombre: 'Sumatriptán', principio_activo: 'Sumatriptán', presentacion: 'Tabletas 50 mg' },
+      { nombre: 'Metoclopramida', principio_activo: 'Metoclopramida', presentacion: 'Tabletas 10 mg' },
+      { nombre: 'Domperidona', principio_activo: 'Domperidona', presentacion: 'Tabletas 10 mg' },
+      { nombre: 'Omeprazol', principio_activo: 'Omeprazol', presentacion: 'Cápsulas 20 mg' },
+      { nombre: 'Clonixinato', principio_activo: 'Clonixinato de lisina', presentacion: 'Tabletas 250 mg' },
+      { nombre: 'Meloxicam', principio_activo: 'Meloxicam', presentacion: 'Tabletas 15 mg' },
+      { nombre: 'Etanercepto', principio_activo: 'Etanercepto', presentacion: 'Inyección' },
+      { nombre: 'Adalimumab', principio_activo: 'Adalimumab', presentacion: 'Inyección' },
+      { nombre: 'Insulina Glargina', principio_activo: 'Insulina glargina', presentacion: 'Solución inyectable' },
+      { nombre: 'Insulina Lispro', principio_activo: 'Insulina lispro', presentacion: 'Solución inyectable' },
+      { nombre: 'Levotiroxina', principio_activo: 'Levotiroxina sódica', presentacion: 'Tabletas 75 mcg' },
+      { nombre: 'Dicloxacilina', principio_activo: 'Dicloxacilina', presentacion: 'Cápsulas 500 mg' },
+      { nombre: 'Sulfametoxazol/Trimetoprim', principio_activo: 'Sulfametoxazol/Trimetoprim', presentacion: 'Tabletas' },
+      { nombre: 'Clonazepam', principio_activo: 'Clonazepam', presentacion: 'Tabletas 1 mg' },
+      { nombre: 'Alopurinol', principio_activo: 'Alopurinol', presentacion: 'Tabletas 100 mg' },
+      { nombre: 'Ezetimiba', principio_activo: 'Ezetimiba', presentacion: 'Tabletas 10 mg' },
+      { nombre: 'Fenofibrato', principio_activo: 'Fenofibrato', presentacion: 'Tabletas 145 mg' },
+      { nombre: 'Ondansetrón', principio_activo: 'Ondansetrón', presentacion: 'Tabletas 8 mg' },
+      { nombre: 'Mebendazol', principio_activo: 'Mebendazol', presentacion: 'Tabletas 100 mg' },
+      { nombre: 'Clotrimazol', principio_activo: 'Clotrimazol', presentacion: 'Crema 1%' },
+      { nombre: 'Nistatina', principio_activo: 'Nistatina', presentacion: 'Ungüento' },
+      { nombre: 'Vitamina D', principio_activo: 'Colecalciferol', presentacion: 'Tabletas 1000 UI' },
+      { nombre: 'Vitamina B12', principio_activo: 'Cianocobalamina', presentacion: 'Tabletas 500 mcg' },
+      { nombre: 'Ácido fólico', principio_activo: 'Ácido fólico', presentacion: 'Tabletas 5 mg' },
+      { nombre: 'Calcio', principio_activo: 'Carbonato de calcio', presentacion: 'Tabletas 500 mg' },
+      { nombre: 'Aspirina', principio_activo: 'Ácido acetilsalicílico', presentacion: 'Tabletas 100 mg' },
+      { nombre: 'Clopidogrel', principio_activo: 'Clopidogrel', presentacion: 'Tabletas 75 mg' },
+      { nombre: 'Gabapentina', principio_activo: 'Gabapentina', presentacion: 'Tabletas 300 mg' },
+      { nombre: 'Pregabalina', principio_activo: 'Pregabalina', presentacion: 'Tabletas 75 mg' },
+      { nombre: 'Lorazepam', principio_activo: 'Lorazepam', presentacion: 'Tabletas 1 mg' },
+      { nombre: 'Risperidona', principio_activo: 'Risperidona', presentacion: 'Tabletas 1 mg' },
+      { nombre: 'Quetiapina', principio_activo: 'Quetiapina', presentacion: 'Tabletas 25 mg' },
+      { nombre: 'Metronidazol', principio_activo: 'Metronidazol', presentacion: 'Tabletas 500 mg' },
+      { nombre: 'Doxiciclina', principio_activo: 'Doxiciclina', presentacion: 'Tabletas 100 mg' },
+      { nombre: 'Acyclovir', principio_activo: 'Aciclovir', presentacion: 'Tabletas 400 mg' },
+      { nombre: 'Valaciclovir', principio_activo: 'Valaciclovir', presentacion: 'Tabletas 500 mg' },
+      { nombre: 'Loratadina', principio_activo: 'Loratadina', presentacion: 'Tabletas 10 mg' },
+      { nombre: 'Omeprazol', principio_activo: 'Omeprazol', presentacion: 'Cápsulas 20 mg' },
+      { nombre: 'Escitalopram', principio_activo: 'Escitalopram', presentacion: 'Tabletas 10 mg' },
+      { nombre: 'Tranexamico', principio_activo: 'Ácido tranexámico', presentacion: 'Tabletas 500 mg' },
+      { nombre: 'Diltiazem', principio_activo: 'Diltiazem', presentacion: 'Tabletas 60 mg' },
+      { nombre: 'Verapamilo', principio_activo: 'Verapamilo', presentacion: 'Tabletas 80 mg' },
+      { nombre: 'Nifedipino', principio_activo: 'Nifedipino', presentacion: 'Tabletas 30 mg' },
+      { nombre: 'Espironolactona', principio_activo: 'Espironolactona', presentacion: 'Tabletas 25 mg' },
+      { nombre: 'Tamsulosina', principio_activo: 'Tamsulosina', presentacion: 'Tabletas 0.4 mg' },
+      { nombre: 'Sildenafil', principio_activo: 'Sildenafil', presentacion: 'Tabletas 50 mg' },
+      { nombre: 'Trazodona', principio_activo: 'Trazodona', presentacion: 'Tabletas 50 mg' },
+      { nombre: 'Baclofeno', principio_activo: 'Baclofeno', presentacion: 'Tabletas 10 mg' },
+      { nombre: 'Ciprofloxacino', principio_activo: 'Ciprofloxacino', presentacion: 'Tabletas 500 mg' },
+      { nombre: 'Levofloxacino', principio_activo: 'Levofloxacino', presentacion: 'Tabletas 500 mg' },
+      { nombre: 'Mometasona', principio_activo: 'Mometasona', presentacion: 'Inhalador nasal' },
+      { nombre: 'Loratadina', principio_activo: 'Loratadina', presentacion: 'Jarabe 5 mg/5 ml' },
+      { nombre: 'Paracetamol Infantil', principio_activo: 'Paracetamol', presentacion: 'Jarabe 120 mg/5 ml' },
+      { nombre: 'Naproxeno', principio_activo: 'Naproxeno', presentacion: 'Jarabe 125 mg/5 ml' },
+      { nombre: 'Bioética', principio_activo: 'Bioética', presentacion: 'No aplica' }
+    ];
+
+    const insertMedicamentoCatalogoSql = `
+      INSERT INTO medicamentos_catalogo (nombre, principio_activo, presentacion)
+      VALUES ($1, $2, $3)
+    `;
+
+    for (const m of medicamentosCatalogo) {
+      await client.query(insertMedicamentoCatalogoSql, [m.nombre, m.principio_activo, m.presentacion]);
+    }
+
     const citas = [
       {
         paciente_id: IDS.paciente1,
@@ -298,8 +409,8 @@ async function seed() {
     const insertRecetaSql = `
       INSERT INTO recetas (
         codigo_qr, paciente_id, medico_id, cita_id, fecha, diagnostico,
-        tratamiento, observaciones, presion_arterial, temperatura, valida
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        tratamiento, observaciones, presion_arterial, temperatura, medicamentos, valida
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
     `;
 
     await client.query(insertRecetaSql, [
@@ -313,6 +424,9 @@ async function seed() {
       'Si el dolor persiste por más de 72 horas o se acompaña de otros síntomas, regresar para valoración.',
       '120/80 mmHg',
       '36.7 °C',
+      [
+        { id: 'm1', nombre: 'Paracetamol', dosis: '500 mg cada 8h', entregado: false, agotado: false }
+      ],
       true,
     ]);
 

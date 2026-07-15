@@ -175,15 +175,30 @@ CREATE TABLE IF NOT EXISTS recetas (
   observaciones     TEXT,
   presion_arterial  VARCHAR(30),
   temperatura       VARCHAR(20),
+  medicamentos      JSONB NOT NULL DEFAULT '[]'::jsonb,
+  receta_origen_id  UUID REFERENCES recetas(id) ON DELETE SET NULL,
   valida            BOOLEAN NOT NULL DEFAULT TRUE,
   invalidada_en     TIMESTAMPTZ,
   invalidada_por    UUID REFERENCES farmacias(id),
   created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+ALTER TABLE recetas ADD COLUMN IF NOT EXISTS medicamentos JSONB NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE recetas ADD COLUMN IF NOT EXISTS receta_origen_id UUID REFERENCES recetas(id) ON DELETE SET NULL;
+
 CREATE INDEX IF NOT EXISTS idx_recetas_paciente ON recetas(paciente_id);
 CREATE INDEX IF NOT EXISTS idx_recetas_medico ON recetas(medico_id);
 CREATE INDEX IF NOT EXISTS idx_recetas_codigo_qr ON recetas(codigo_qr);
+
+CREATE TABLE IF NOT EXISTS medicamentos_catalogo (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nombre           VARCHAR(180) NOT NULL,
+  principio_activo VARCHAR(180),
+  presentacion     VARCHAR(120),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_medicamentos_catalogo_nombre_lower ON medicamentos_catalogo (lower(nombre));
 
 -- ============================================================
 -- AVISOS

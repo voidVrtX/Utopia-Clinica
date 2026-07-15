@@ -9,7 +9,7 @@ export function useFarmaciaViewModel() {
   const [error, setError] = useState<string | null>(null);
   const [procesando, setProcesando] = useState(false);
 
-  const escanear = async (codigoQR: string) => {
+  const escanear = async (codigoQR: string): Promise<Receta | null> => {
     setProcesando(true);
     setError(null);
     const encontrada = await RecetasController.obtenerPorCodigo(codigoQR);
@@ -17,16 +17,17 @@ export function useFarmaciaViewModel() {
       setError('Código QR no reconocido. No corresponde a una receta de Utopía.');
       setReceta(null);
       setProcesando(false);
-      return;
+      return null;
     }
     if (!encontrada.valida) {
       setError('Esta receta ya fue utilizada anteriormente.');
       setReceta(encontrada);
       setProcesando(false);
-      return;
+      return encontrada;
     }
     setReceta(encontrada);
     setProcesando(false);
+    return encontrada;
   };
 
   const invalidar = async () => {

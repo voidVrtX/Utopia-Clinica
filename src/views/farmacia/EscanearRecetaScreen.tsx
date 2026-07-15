@@ -9,16 +9,19 @@ export default function EscanearRecetaScreen({ navigation }: any) {
   const vm = useFarmaciaViewModel();
 
   const onEscaneado = async (data: string) => {
-    await vm.escanear(data);
-    navigation.navigate('ConfirmarInvalidacion', { codigoQR: data });
+    const receta = await vm.escanear(data);
+    if (receta && receta.valida) {
+      navigation.navigate('ConfirmarInvalidacion', { receta });
+    }
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#000' }}>
+    <View style={{ flex: 1, backgroundColor: colors.primaryDark }}>
       <ScreenHeader title="Escanear receta" onBack={() => navigation.goBack()} color={colors.primaryDark} />
       <View style={styles.body}>
         <CameraScanner onEscaneado={onEscaneado} />
       </View>
+      {vm.error ? <Text style={styles.error}>{vm.error}</Text> : null}
       <Text style={styles.hint}>Apunta la cámara al código QR de la receta del paciente.</Text>
     </View>
   );
@@ -27,4 +30,5 @@ export default function EscanearRecetaScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   body: { flex: 1, margin: spacing.md },
   hint: { color: colors.white, textAlign: 'center', padding: spacing.md, opacity: 0.8 },
+  error: { color: colors.danger, textAlign: 'center', paddingHorizontal: spacing.md, marginBottom: spacing.sm },
 });

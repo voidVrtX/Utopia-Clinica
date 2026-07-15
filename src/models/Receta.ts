@@ -1,3 +1,5 @@
+import { MedicamentoReceta } from './Medicamento';
+
 export interface Receta {
   id: string;
   codigoQR: string; // payload único codificado en el QR
@@ -10,6 +12,8 @@ export interface Receta {
   observaciones?: string;
   presionArterial?: string;
   temperatura?: string;
+  medicamentos: MedicamentoReceta[];
+  recetaOrigenId?: string;
   valida: boolean; // false cuando farmacia la invalida
   invalidadaEn?: string;
   invalidadaPor?: string; // id de usuario de farmacia

@@ -5,6 +5,7 @@ const {
   getByCodigoQR,
   create,
   invalidar,
+  entregar,
 } = require('../controllers/recetas.controller');
 const { requireAuth, requireRole } = require('../middleware/auth');
 
@@ -15,5 +16,6 @@ router.get('/qr/:codigoQR', requireAuth, requireRole('farmacia', 'admin'), getBy
 router.get('/:id', requireAuth, getById);
 router.post('/', requireAuth, requireRole('medico'), create);
 router.patch('/:id/invalidar', requireAuth, requireRole('farmacia'), invalidar);
+router.patch('/:id/entrega', requireAuth, requireRole('farmacia'), entregar);
 
 module.exports = router;
