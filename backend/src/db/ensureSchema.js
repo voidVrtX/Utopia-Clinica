@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { query } = require('./db');
+const { query } = require('../config/db');
 
 async function ensureSchema() {
   const schemaPath = path.join(__dirname, 'schema.sql');
