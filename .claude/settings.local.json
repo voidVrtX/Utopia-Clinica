@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(where psql *)",
+      "Bash(where pg_ctl)",
+      "Bash(sc query *)",
+      "Bash(net start *)"
+    ]
+  }
+}

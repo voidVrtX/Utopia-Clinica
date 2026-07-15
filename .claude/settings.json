@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(export PGPASSWORD=postgres)",
+      "Bash(\"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -U postgres -h localhost -c \"SELECT version\\(\\);\")",
+      "Bash(npm run *)",
+      "Bash(export PGPASSWORD=123456)",
+      "Bash(\"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -U utopia_user -h localhost -d utopia_clinica -c \"SELECT gen_random_uuid\\(\\);\")",
+      "Bash(\"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -U utopia_user -h localhost -d utopia_clinica -c \"\\\\dn+ public\")",
+      "Bash(\"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -U utopia_user -h localhost -d utopia_clinica -c \"SELECT current_user, \\(SELECT rolname FROM pg_roles WHERE oid = datdba\\) AS db_owner FROM pg_database WHERE datname = current_database\\(\\);\")",
+      "Bash(npx tsc *)",
+      "Skill(run)",
+      "Skill(run:*)"
+    ]
+  }
+}
