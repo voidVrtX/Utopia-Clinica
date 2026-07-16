@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'react-native';
 import { colors, radius, spacing } from '../theme/theme';
 import Button from './Button';
 import { maskEmail } from '../utils/helpers';
@@ -19,7 +20,7 @@ export default function ConfirmacionCard({ color, titulo, mensaje, email, onAcep
   return (
     <View style={[styles.container, { backgroundColor: color }]}>
       <View style={styles.logoWrap}>
-        <Ionicons name="medkit" size={40} color={colors.white} />
+        <Image source={require('../../assets/reemplazar_medikit.png')} style={styles.logoImage} />
         <Text style={styles.brand}>UTOPÍA</Text>
         <Text style={styles.brandSub}>CLÍNICA MÉDICA</Text>
       </View>
@@ -51,6 +52,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
+  logoImage: { width: 44, height: 44, tintColor: colors.white },
   titulo: { fontSize: 17, fontWeight: '800', marginBottom: spacing.sm },
   iconCircle: {
     width: 70,

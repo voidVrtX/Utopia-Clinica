@@ -42,9 +42,11 @@ export function useAdminMedicosViewModel() {
     telefono?: string;
     email: string;
   }) => {
+    // Generar contraseña aleatoria segura (8 caracteres alfanuméricos)
+    const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-2);
     await AuthController.crearMedico({
       email: data.email,
-      password: 'Utopia123',
+      password: generatedPassword,
       nombre: data.nombre,
       especialidad: data.especialidad,
       institucion: data.institucion,

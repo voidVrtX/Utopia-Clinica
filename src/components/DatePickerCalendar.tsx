@@ -9,6 +9,15 @@ interface DatePickerCalendarProps {
   label?: string;
   placeholder?: string;
   onDateError?: (error: string | null) => void;
+  /**
+   * Si es false, no valida edad mínima (útil para selecciones de rango en reportes)
+   */
+  validateAdult?: boolean;
+  /**
+   * Opcionalmente forzar año mínimo y máximo (ambos inclusive)
+   */
+  minYear?: number;
+  maxYear?: number;
 }
 
 const MONTHS = [
@@ -26,16 +35,42 @@ export default function DatePickerCalendar({
   label = 'Fecha de nacimiento',
   placeholder = 'DD / MM / YYYY',
   onDateError,
+  validateAdult = true,
+  minYear: minYearProp,
+  maxYear: maxYearProp,
 }: DatePickerCalendarProps) {
   const hoy = new Date();
-  const minYear = hoy.getFullYear() - 100;
-  const maxYear = hoy.getFullYear() - 18;
+  const defaultMinYear = hoy.getFullYear() - 100;
+  const defaultMaxYear = hoy.getFullYear() - 18;
+  const minYear = typeof minYearProp === 'number' ? minYearProp : defaultMinYear;
+  const maxYear = typeof maxYearProp === 'number' ? maxYearProp : defaultMaxYear;
+  const effectiveMinYear = validateAdult ? minYear : (typeof minYearProp === 'number' ? minYearProp : 1900);
+  const effectiveMaxYear = validateAdult ? maxYear : (typeof maxYearProp === 'number' ? maxYearProp : hoy.getFullYear() + 100);
+
+  const parsedValue = (() => {
+    const parts = value.split('/');
+    if (parts.length === 3) {
+      const day = Number(parts[0]);
+      const month = Number(parts[1]) - 1;
+      const year = Number(parts[2]);
+      if (!Number.isNaN(day) && !Number.isNaN(month) && !Number.isNaN(year)) {
+        return { day, month, year };
+      }
+    }
+    return null;
+  })();
+
+  const effectiveValidateAdult = validateAdult;
+  const initialYear = parsedValue?.year ?? hoy.getFullYear();
+  const clampedInitialYear = Math.min(Math.max(initialYear, effectiveMinYear), effectiveMaxYear);
+  const initialMonth = parsedValue?.month ?? hoy.getMonth();
+  const initialDay = parsedValue?.day ?? hoy.getDate();
 
   const [showCalendar, setShowCalendar] = useState(false);
   const [modo, setModo] = useState<'dia' | 'anio'>('dia');
-  const [selectedYear, setSelectedYear] = useState(maxYear);
-  const [selectedMonth, setSelectedMonth] = useState(hoy.getMonth());
-  const [selectedDay, setSelectedDay] = useState(hoy.getDate());
+  const [selectedYear, setSelectedYear] = useState(clampedInitialYear);
+  const [selectedMonth, setSelectedMonth] = useState(initialMonth);
+  const [selectedDay, setSelectedDay] = useState(Math.min(initialDay, getDaysInMonth(initialMonth, clampedInitialYear)));
   const [error, setError] = useState<string | null>(null);
   const yearScrollRef = useRef<ScrollView>(null);
 
@@ -59,7 +94,7 @@ export default function DatePickerCalendar({
       mes = 0;
       anio += 1;
     }
-    if (anio < minYear || anio > maxYear) return;
+    if (anio < effectiveMinYear || anio > effectiveMaxYear) return;
     setSelectedMonth(mes);
     setSelectedYear(anio);
     setSelectedDay((d) => Math.min(d, getDaysInMonth(mes, anio)));
@@ -73,7 +108,7 @@ export default function DatePickerCalendar({
 
   useEffect(() => {
     if (modo === 'anio') {
-      const indice = maxYear - selectedYear;
+      const indice = effectiveMaxYear - selectedYear;
       const fila = Math.floor(indice / 3);
       const alturaFila = 52;
       requestAnimationFrame(() => {
@@ -83,13 +118,14 @@ export default function DatePickerCalendar({
   }, [modo]);
 
   const handleSelectDate = () => {
-    const age = calculateAge(selectedDay, selectedMonth, selectedYear);
-
-    if (age < 18) {
-      const err = 'Debes tener al menos 18 años para registrarte.';
-      setError(err);
-      onDateError?.(err);
-      return;
+    if (effectiveValidateAdult) {
+      const age = calculateAge(selectedDay, selectedMonth, selectedYear);
+      if (age < 18) {
+        const err = 'Debes tener al menos 18 años para registrarte.';
+        setError(err);
+        onDateError?.(err);
+        return;
+      }
     }
 
     setError(null);
@@ -193,8 +229,8 @@ export default function DatePickerCalendar({
                 <Text style={styles.sectionLabel}>Selecciona el año</Text>
                 <ScrollView ref={yearScrollRef} style={styles.yearGridScroll}>
                   <View style={styles.yearGrid}>
-                    {Array.from({ length: maxYear - minYear + 1 }).map((_, i) => {
-                      const year = maxYear - i;
+                    {Array.from({ length: effectiveMaxYear - effectiveMinYear + 1 }).map((_, i) => {
+                      const year = effectiveMaxYear - i;
                       return (
                         <TouchableOpacity
                           key={year}
@@ -353,8 +389,8 @@ const styles = StyleSheet.create({
   weekDayText: {
     width: `${100 / 7}%`,
     textAlign: 'center',
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '800',
     color: colors.textMuted,
     textTransform: 'uppercase',
   },

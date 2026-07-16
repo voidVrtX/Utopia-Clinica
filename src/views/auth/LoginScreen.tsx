@@ -1,6 +1,7 @@
 import React from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'react-native';
 import { colors, radius, spacing } from '../../theme/theme';
 import TextField from '../../components/TextField';
 import Button from '../../components/Button';
@@ -13,7 +14,7 @@ export default function LoginScreen({ navigation }: any) {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.header}>
-        <Ionicons name="medkit" size={46} color={colors.white} />
+        <Image source={require('../../../assets/reemplazar_medikit.png')} style={styles.headerLogo} />
         <Text style={styles.brand}>UTOPÍA</Text>
         <Text style={styles.brandSub}>CLÍNICA MÉDICA</Text>
       </View>
@@ -59,6 +60,7 @@ const styles = StyleSheet.create({
   header: { backgroundColor: colors.primary, alignItems: 'center', paddingTop: spacing.xl * 1.6, paddingBottom: spacing.xl * 2 },
   brand: { color: colors.white, fontSize: 28, fontWeight: '800', letterSpacing: 3, marginTop: spacing.sm },
   brandSub: { color: colors.white, fontSize: 10, letterSpacing: 3, marginTop: 2 },
+  headerLogo: { width: 56, height: 56, tintColor: colors.white },
   body: { flexGrow: 1, backgroundColor: colors.background, padding: spacing.lg, marginTop: -40 },
   card: { backgroundColor: colors.white, borderRadius: radius.lg, padding: spacing.lg, ...{ shadowOpacity: 0.08 } },
   title: { fontSize: 18, fontWeight: '800', color: colors.text },

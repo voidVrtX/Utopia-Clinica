@@ -57,7 +57,7 @@ export default function RecetaIndividualScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  body: { padding: spacing.md, paddingBottom: spacing.xl },
+  body: { padding: spacing.md, paddingBottom: spacing.xl, flexGrow: 1 },
   card: { backgroundColor: colors.card, borderRadius: radius.md, padding: spacing.md, ...shadow },
   titulo: { fontWeight: '800', fontSize: 13, color: colors.text, textAlign: 'center' },
   section: { marginTop: spacing.sm },

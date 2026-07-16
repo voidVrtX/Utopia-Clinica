@@ -36,14 +36,14 @@ async function descargarYCompartir(path: string, nombreArchivo: string): Promise
 }
 
 export const ExportService = {
-  exportarCitasPDF: (filtro?: { medicoId?: string }) =>
+  exportarCitasPDF: (filtro?: { medicoId?: string; startDate?: string; endDate?: string }) =>
     descargarYCompartir(
-      `/export/citas.pdf${filtro?.medicoId ? `?medicoId=${filtro.medicoId}` : ''}`,
+      `/export/citas.pdf${buildQuery(filtro)}`,
       'historial-utopia.pdf'
     ),
-  exportarCitasExcel: (filtro?: { medicoId?: string }) =>
+  exportarCitasExcel: (filtro?: { medicoId?: string; startDate?: string; endDate?: string }) =>
     descargarYCompartir(
-      `/export/citas.xlsx${filtro?.medicoId ? `?medicoId=${filtro.medicoId}` : ''}`,
+      `/export/citas.xlsx${buildQuery(filtro)}`,
       'historial-utopia.xlsx'
     ),
   exportarCancelacionesPDF: () => descargarYCompartir('/export/cancelaciones.pdf', 'cancelaciones-utopia.pdf'),
@@ -53,3 +53,12 @@ export const ExportService = {
   exportarMedicosPDF: () => descargarYCompartir('/export/medicos.pdf', 'medicos-utopia.pdf'),
   exportarMedicosExcel: () => descargarYCompartir('/export/medicos.xlsx', 'medicos-utopia.xlsx'),
 };
+
+function buildQuery(filtro?: { medicoId?: string; startDate?: string; endDate?: string }) {
+  if (!filtro) return '';
+  const params: string[] = [];
+  if (filtro.medicoId) params.push(`medicoId=${encodeURIComponent(filtro.medicoId)}`);
+  if (filtro.startDate) params.push(`startDate=${encodeURIComponent(filtro.startDate)}`);
+  if (filtro.endDate) params.push(`endDate=${encodeURIComponent(filtro.endDate)}`);
+  return params.length ? `?${params.join('&')}` : '';
+}

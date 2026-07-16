@@ -56,7 +56,7 @@ export default function MedicoIndividualAdminScreen({ route, navigation }: any) 
           </View>
         ) : null}
         <View style={styles.accionesRow}>
-          <Button title="EDITAR" variant="outline" onPress={() => Alert.alert('Editar', 'Formulario de edición próximamente.')} style={{ flex: 1 }} />
+          <Button title="EDITAR" variant="outline" onPress={() => navigation.navigate('RegistrarMedico', { medicoId: medico.id })} style={{ flex: 1 }} />
           <Button title={medico.activo ? 'ELIMINAR/DESACTIVAR' : 'ACTIVAR'} variant="danger" onPress={eliminarDesactivar} style={{ flex: 1 }} />
         </View>
       </ScrollView>

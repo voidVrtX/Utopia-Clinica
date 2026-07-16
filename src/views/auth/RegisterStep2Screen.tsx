@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'react-native';
 import { colors, radius, spacing } from '../../theme/theme';
 import TextField from '../../components/TextField';
 import DatePickerCalendar from '../../components/DatePickerCalendar';
@@ -31,7 +32,7 @@ export default function RegisterStep2Screen({ navigation }: any) {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={styles.headerBg}>
         <Ionicons name="arrow-back" size={22} color={colors.white} onPress={() => navigation.goBack()} style={styles.back} />
-        <Ionicons name="medkit" size={40} color={colors.white} />
+        <Image source={require('../../../assets/reemplazar_medikit.png')} style={styles.headerLogo} />
         <Text style={styles.brand}>UTOPÍA</Text>
       </View>
       <ScrollView contentContainerStyle={styles.body}>
@@ -63,6 +64,7 @@ const styles = StyleSheet.create({
   headerBg: { backgroundColor: colors.primary, alignItems: 'center', paddingTop: spacing.xl * 1.4, paddingBottom: spacing.xl * 1.6 },
   back: { position: 'absolute', top: spacing.xl * 1.4, left: spacing.md },
   brand: { color: colors.white, fontSize: 24, fontWeight: '800', letterSpacing: 2, marginTop: spacing.xs },
+  headerLogo: { width: 44, height: 44, tintColor: colors.white },
   body: { flexGrow: 1, padding: spacing.lg, marginTop: -30 },
   card: { backgroundColor: colors.white, borderRadius: radius.lg, padding: spacing.lg },
   title: { fontSize: 17, fontWeight: '800', color: colors.text },

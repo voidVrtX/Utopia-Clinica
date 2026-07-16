@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, spacing } from '../../theme/theme';
 import ScreenHeader from '../../components/ScreenHeader';
 import Button from '../../components/Button';
-import DocumentScanner from '../../components/DocumentScanner';
+// Se eliminó el escáner para cédulas: ahora se ingresan manualmente
 import { useAdminMedicosViewModel } from '../../viewmodels/useAdminViewModels';
+import { MedicosController } from '../../controllers/MedicosController';
 import { notificationManager } from '../../services/notificationService';
 
-export default function RegistrarMedicoScreen({ navigation }: any) {
+export default function RegistrarMedicoScreen({ route, navigation }: any) {
   const { crearMedico } = useAdminMedicosViewModel();
+  const medicoId = route?.params?.medicoId ?? null;
+  const [editando, setEditando] = useState(false);
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [telefono, setTelefono] = useState('');
@@ -20,6 +23,7 @@ export default function RegistrarMedicoScreen({ navigation }: any) {
   const [ubicacionAtencion, setUbicacionAtencion] = useState('');
   const [cedula, setCedula] = useState<string | null>(null);
   const [cedulaProfesional, setCedulaProfesional] = useState<string | null>(null);
+  const [password, setPassword] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,13 +32,18 @@ export default function RegistrarMedicoScreen({ navigation }: any) {
       setError('Completa al menos nombre, correo y especialidad.');
       return;
     }
-    if (!cedula) {
-      setError('Debes capturar la cédula de identidad.');
+    if (!cedula || !cedula.trim()) {
+      setError('Ingresa la cédula de identidad.');
       return;
     }
-    if (!cedulaProfesional) {
-      setError('Debes capturar la cédula profesional.');
+    if (!cedulaProfesional || !cedulaProfesional.trim()) {
+      setError('Ingresa la cédula profesional.');
       return;
+    }
+    if (!password) {
+      // generate one if missing
+      const p = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-2);
+      setPassword(p);
     }
     setError(null);
     setEnviando(true);
@@ -52,7 +61,12 @@ export default function RegistrarMedicoScreen({ navigation }: any) {
       cedulaProfesional,
     };
 
-    await crearMedico(doctorData as any);
+    if (medicoId) {
+      // modo edición
+      await MedicosController.actualizar(medicoId, doctorData as any);
+    } else {
+      await crearMedico({ ...(doctorData as any), password: password ?? undefined });
+    }
 
     // Enviar notificación
     notificationManager.notifyDoctorRegistered(
@@ -65,6 +79,23 @@ export default function RegistrarMedicoScreen({ navigation }: any) {
     setEnviando(false);
     navigation.goBack();
   };
+
+  useEffect(() => {
+    if (!medicoId) return;
+    (async () => {
+      const m = await MedicosController.obtener(medicoId);
+      if (!m) return;
+      setNombre(m.nombre ?? '');
+      setEmail(m.email ?? '');
+      setTelefono(m.telefono ?? '');
+      setEspecialidad(m.especialidad ?? '');
+      setInstitucion(m.institucion ?? '');
+      setAniosExperiencia(m.aniosExperiencia ?? '');
+      setSobreElMedico(m.sobreElMedico ?? '');
+      setUbicacionAtencion(m.ubicacionAtencion ?? '');
+      setEditando(true);
+    })();
+  }, [medicoId]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -81,37 +112,19 @@ export default function RegistrarMedicoScreen({ navigation }: any) {
         <Field label="Ubicación de atención" value={ubicacionAtencion} onChangeText={setUbicacionAtencion} />
 
         <Text style={styles.section}>Documentos requeridos</Text>
-        <DocumentScanner
-          label="Cédula de Identidad"
-          documentType="cedula"
-          onCapture={(uri) => {
-            setCedula(uri);
-            notificationManager.notifyAlert('Cédula capturada', 'Se guardó la cédula de identidad correctamente.');
-          }}
-        />
-
-        <DocumentScanner
-          label="Cédula Profesional"
-          documentType="cedula_profesional"
-          onCapture={(uri) => {
-            setCedulaProfesional(uri);
-            notificationManager.notifyAlert('Cédula profesional capturada', 'Se guardó la cédula profesional correctamente.');
-          }}
-        />
-
-        {cedula && (
-          <View style={styles.successBadge}>
-            <Ionicons name="checkmark-circle" size={16} color="#2E9E5B" />
-            <Text style={styles.successText}>Cédula de identidad capturada</Text>
+        <Field label="Cédula de Identidad" value={cedula ?? ''} onChangeText={(t: string) => setCedula(t)} />
+        <Field label="Cédula Profesional" value={cedulaProfesional ?? ''} onChangeText={(t: string) => setCedulaProfesional(t)} />
+        <Text style={styles.section}>Cuenta</Text>
+        <View style={{ marginBottom: spacing.md }}>
+          <Text style={styles.label}>Contraseña</Text>
+          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+            <TextInput style={[styles.input, { flex: 1 }]} value={password ?? ''} placeholder="Generada automáticamente" editable={false} />
+            <Button title="Generar" onPress={() => {
+              const p = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-2);
+              setPassword(p);
+            }} />
           </View>
-        )}
-
-        {cedulaProfesional && (
-          <View style={styles.successBadge}>
-            <Ionicons name="checkmark-circle" size={16} color="#2E9E5B" />
-            <Text style={styles.successText}>Cédula profesional capturada</Text>
-          </View>
-        )}
+        </View>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <Button title="Confirmar" onPress={confirmar} loading={enviando} />

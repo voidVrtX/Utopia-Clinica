@@ -4,18 +4,16 @@
     "slug": "utopia-clinica",
     "version": "1.0.0",
     "orientation": "default",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/reemplazar_medikit.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-
     "splash": {
-      "backgroundColor": "#0B6E58"
+      "backgroundColor": "#0F7A5C",
+      "image": "./assets/splash.png"
     },
-
     "assetBundlePatterns": [
       "**/*"
     ],
-
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.utopia.clinica",
@@ -25,9 +23,12 @@
         "NSCameraUsageDescription": "Utopía usa la cámara para escanear códigos QR y capturar documentos."
       }
     },
-
     "android": {
       "package": "com.utopia.clinica",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/reemplazar_medikit.png",
+        "backgroundColor": "#0F7A5C"
+      },
       "permissions": [
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
@@ -37,22 +38,20 @@
         "android.permission.RECORD_AUDIO"
       ]
     },
-
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/icon.png"
+      "favicon": "./assets/reemplazar_medikit.png"
     },
-
     "plugins": [
       "expo-camera",
       "expo-location",
       "expo-local-authentication",
       "expo-screen-orientation",
       "expo-sharing",
-      "expo-font"
+      "expo-font",
+      "expo-video"
     ],
-
     "extra": {
       "eas": {
         "projectId": "85464eb9-0d34-4a9b-abd4-9672ddf37e31"

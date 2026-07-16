@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'react-native';
 import { colors, radius, spacing } from '../theme/theme';
 
 interface MedicalSummaryProps {
@@ -32,7 +33,7 @@ export default function MedicalSummary({
         onPress={() => setIsExpanded(!isExpanded)}
       >
         <View style={styles.headerContent}>
-          <Ionicons name="medkit" size={24} color={colors.primary} />
+          <Image source={require('../../assets/reemplazar_medikit.png')} style={styles.headerLogo} />
           <Text style={styles.title}>Resumen Médico</Text>
         </View>
         <Ionicons
@@ -127,6 +128,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
   },
+
+  headerLogo: { width: 22, height: 22, tintColor: colors.primary, marginRight: 8 },
   title: {
     fontSize: 16,
     fontWeight: '700',

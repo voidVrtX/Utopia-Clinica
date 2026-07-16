@@ -14,6 +14,8 @@ import {
   MedicoReporte,
 } from '../../controllers/ReportesController';
 import { ExportService } from '../../services/exportService';
+import DatePickerCalendar from '../../components/DatePickerCalendar';
+import { Modal } from 'react-native';
 
 const EXPORTADORES: Record<TipoReporte, { pdf: () => Promise<void>; excel: () => Promise<void> } | null> = {
   citas: { pdf: () => ExportService.exportarCitasPDF(), excel: () => ExportService.exportarCitasExcel() },
@@ -30,6 +32,9 @@ export default function ReporteDetalleScreen({ route, navigation }: any) {
   const [datos, setDatos] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
   const [exportando, setExportando] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
 
   useEffect(() => {
     setCargando(true);
@@ -39,15 +44,21 @@ export default function ReporteDetalleScreen({ route, navigation }: any) {
   }, [tipo]);
 
   const exportar = () => {
-    const exportador = EXPORTADORES[tipo];
-    if (!exportador) return;
     Alert.alert('Exportar reporte', 'Elige el formato', [
       {
         text: 'PDF',
         onPress: async () => {
           setExportando(true);
           try {
-            await exportador.pdf();
+            if (tipo === 'citas') {
+              await ExportService.exportarCitasPDF(startDate ? { startDate, endDate } : undefined);
+            } else if (tipo === 'cancelaciones') {
+              await ExportService.exportarCancelacionesPDF();
+            } else if (tipo === 'pacientes') {
+              await ExportService.exportarPacientesPDF();
+            } else if (tipo === 'medicos') {
+              await ExportService.exportarMedicosPDF();
+            }
           } catch {
             Alert.alert('Exportar', 'No se pudo generar el archivo. Intenta de nuevo.');
           } finally {
@@ -60,7 +71,15 @@ export default function ReporteDetalleScreen({ route, navigation }: any) {
         onPress: async () => {
           setExportando(true);
           try {
-            await exportador.excel();
+            if (tipo === 'citas') {
+              await ExportService.exportarCitasExcel(startDate ? { startDate, endDate } : undefined);
+            } else if (tipo === 'cancelaciones') {
+              await ExportService.exportarCancelacionesExcel();
+            } else if (tipo === 'pacientes') {
+              await ExportService.exportarPacientesExcel();
+            } else if (tipo === 'medicos') {
+              await ExportService.exportarMedicosExcel();
+            }
           } catch {
             Alert.alert('Exportar', 'No se pudo generar el archivo. Intenta de nuevo.');
           } finally {
@@ -76,10 +95,10 @@ export default function ReporteDetalleScreen({ route, navigation }: any) {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScreenHeader title={titulo} onBack={() => navigation.goBack()} color={color} />
       <ResponsiveContainer style={styles.rangoRow}>
-        <View style={styles.rangoBox}>
+        <Pressable style={styles.rangoBox} onPress={() => setShowCalendar(true)}>
           <Ionicons name="stats-chart-outline" size={14} color={colors.text} />
           <Text style={styles.rangoText}>{datos.length} registro{datos.length === 1 ? '' : 's'}</Text>
-        </View>
+        </Pressable>
         <Pressable style={[styles.exportBtn, { backgroundColor: color }]} onPress={exportar} disabled={exportando}>
           {exportando ? (
             <ActivityIndicator size="small" color={colors.white} />
@@ -88,6 +107,32 @@ export default function ReporteDetalleScreen({ route, navigation }: any) {
           )}
         </Pressable>
       </ResponsiveContainer>
+
+      <Modal visible={showCalendar} transparent animationType="fade">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 }}>
+          <View style={{ backgroundColor: colors.card, borderRadius: 12, padding: 12 }}>
+            <DatePickerCalendar
+              value={startDate ?? ''}
+              validateAdult={false}
+              onChangeText={(text) => {
+                // text -> DD/MM/YYYY; set start = first day of that month, end = last day
+                const parts = text.split('/');
+                if (parts.length === 3) {
+                  const day = '01';
+                  const month = parts[1].padStart(2, '0');
+                  const year = parts[2];
+                  const start = `${year}-${month}-01`;
+                  const endDay = new Date(Number(year), Number(month), 0).getDate();
+                  const end = `${year}-${month}-${String(endDay).padStart(2, '0')}`;
+                  setStartDate(start);
+                  setEndDate(end);
+                  setShowCalendar(false);
+                }
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
 
       {cargando ? (
         <Text style={styles.muted}>Cargando…</Text>

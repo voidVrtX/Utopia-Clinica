@@ -67,6 +67,14 @@ async function citasParaExport(req) {
     values.push(req.query.pacienteId);
     clauses.push(`c.paciente_id = $${values.length}`);
   }
+  if (req.query.startDate) {
+    values.push(req.query.startDate);
+    clauses.push(`c.fecha >= $${values.length}`);
+  }
+  if (req.query.endDate) {
+    values.push(req.query.endDate);
+    clauses.push(`c.fecha <= $${values.length}`);
+  }
 
   const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
   const { rows } = await query(

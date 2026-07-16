@@ -8,19 +8,24 @@ import ResponsiveGrid from '../../components/ResponsiveGrid';
 import { useHistorialMedicoViewModel } from '../../viewmodels/useHistorialMedicoViewModel';
 import { formatFechaCorta } from '../../utils/helpers';
 import { ExportService } from '../../services/exportService';
+import DatePickerCalendar from '../../components/DatePickerCalendar';
+import { Modal } from 'react-native';
 
 export default function HistorialMedicoScreen({ navigation }: any) {
   const { proximas, cargando } = useHistorialMedicoViewModel();
   const [rango] = useState('01/05/2026 - 31/05/2026');
   const [exportando, setExportando] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
 
   const exportar = async (formato: 'PDF' | 'Excel') => {
     setExportando(true);
     try {
       if (formato === 'PDF') {
-        await ExportService.exportarCitasPDF();
+        await ExportService.exportarCitasPDF(startDate ? { startDate, endDate } : undefined);
       } else {
-        await ExportService.exportarCitasExcel();
+        await ExportService.exportarCitasExcel(startDate ? { startDate, endDate } : undefined);
       }
     } catch {
       Alert.alert('Exportar histórico', 'No se pudo generar el archivo. Intenta de nuevo.');
@@ -35,10 +40,10 @@ export default function HistorialMedicoScreen({ navigation }: any) {
         <Text style={styles.headerTitle}>Mi historial</Text>
       </View>
       <ResponsiveContainer style={styles.rangoRow}>
-        <View style={styles.rangoBox}>
+        <Pressable style={styles.rangoBox} onPress={() => setShowCalendar(true)}>
           <Ionicons name="calendar-outline" size={14} color={colors.text} />
-          <Text style={styles.rangoText}>{rango}</Text>
-        </View>
+          <Text style={styles.rangoText}>{startDate ? `${startDate} - ${endDate}` : rango}</Text>
+        </Pressable>
         <Pressable
           style={styles.exportBtn}
           disabled={exportando}
@@ -53,6 +58,29 @@ export default function HistorialMedicoScreen({ navigation }: any) {
           <Text style={styles.exportBtnText}>{exportando ? 'Generando…' : 'EXPORTAR'}</Text>
         </Pressable>
       </ResponsiveContainer>
+      <Modal visible={showCalendar} transparent animationType="fade">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 }}>
+          <View style={{ backgroundColor: colors.card, borderRadius: 12, padding: 12 }}>
+            <DatePickerCalendar
+              value={''}
+              validateAdult={false}
+              onChangeText={(text) => {
+                const parts = text.split('/');
+                if (parts.length === 3) {
+                  const month = parts[1].padStart(2, '0');
+                  const year = parts[2];
+                  const start = `${year}-${month}-01`;
+                  const endDay = new Date(Number(year), Number(month), 0).getDate();
+                  const end = `${year}-${month}-${String(endDay).padStart(2, '0')}`;
+                  setStartDate(start);
+                  setEndDate(end);
+                  setShowCalendar(false);
+                }
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <ResponsiveContainer style={styles.body}>
           <Text style={styles.section}>PRÓXIMAS CITAS</Text>

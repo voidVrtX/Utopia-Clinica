@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'react-native';
 import { colors, radius, spacing } from '../../theme/theme';
 import EmailValidator from '../../components/EmailValidator';
 import PasswordValidator from '../../components/PasswordValidator';
@@ -59,7 +60,7 @@ export default function RegisterStep1Screen({ navigation }: any) {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={styles.headerBg}>
         <Ionicons name="arrow-back" size={22} color={colors.white} onPress={() => navigation.goBack()} style={styles.back} />
-        <Ionicons name="medkit" size={40} color={colors.white} />
+        <Image source={require('../../../assets/reemplazar_medikit.png')} style={styles.headerLogo} />
         <Text style={styles.brand}>UTOPÍA</Text>
         <Text style={styles.brandSub}>CLÍNICA MÉDICA</Text>
       </View>
@@ -122,6 +123,7 @@ const styles = StyleSheet.create({
   back: { position: 'absolute', top: spacing.xl * 1.4, left: spacing.md },
   brand: { color: colors.white, fontSize: 24, fontWeight: '800', letterSpacing: 2, marginTop: spacing.xs },
   brandSub: { color: colors.white, fontSize: 9, letterSpacing: 2, marginTop: 2 },
+  headerLogo: { width: 44, height: 44, tintColor: colors.white },
   body: { flexGrow: 1, padding: spacing.lg, marginTop: -30 },
   card: { backgroundColor: colors.white, borderRadius: radius.lg, padding: spacing.lg },
   title: { fontSize: 17, fontWeight: '800', color: colors.text },

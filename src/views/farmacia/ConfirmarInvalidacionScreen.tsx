@@ -93,7 +93,7 @@ export default function ConfirmarInvalidacionScreen({ route, navigation }: any) 
         <Text style={styles.successTitle}>Receta completada</Text>
         <Text style={styles.successSub}>El paciente ya no podrá volver a usar este código QR.</Text>
         {error ? <Text style={styles.successSub}>{error}</Text> : null}
-        <Button title="Escanear otra receta" onPress={() => navigation.navigate('EscanearReceta')} style={{ backgroundColor: colors.white, marginTop: spacing.lg }} />
+        <Button title="Escanear otra receta" variant="outline" onPress={() => navigation.navigate('EscanearReceta')} style={{ backgroundColor: colors.white, marginTop: spacing.lg }} />
         <Button title="Volver al inicio" variant="ghost" onPress={() => navigation.navigate('FarmaciaInicio')} />
       </View>
     );

@@ -12,8 +12,9 @@ import BiometricPrompt from '../components/BiometricPrompt';
 
 export default function RootNavigator() {
   const { cargando, usuario } = useSession();
+  const [showSplashVideo, setShowSplashVideo] = React.useState(true);
 
-  if (cargando) {
+  if (cargando && showSplashVideo) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary }}>
         <ActivityIndicator color={colors.white} size="large" />
@@ -31,8 +32,27 @@ export default function RootNavigator() {
 
   return (
     <NavigationContainer>
-      <RoleNavigator />
-      <BiometricPrompt />
+      {showSplashVideo ? (
+        // show local splash video before navigating into app
+        // @ts-ignore - simple callback prop
+        <>
+          <BiometricPrompt />
+          {/* dynamic import to avoid circular imports */}
+          <RootSplash onFinish={() => setShowSplashVideo(false)} />
+        </>
+      ) : (
+        <>
+          <RoleNavigator />
+          <BiometricPrompt />
+        </>
+      )}
     </NavigationContainer>
   );
+}
+
+function RootSplash({ onFinish }: { onFinish: () => void }) {
+  // import lazily to keep module graph simple
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const Splash = require('../views/SplashVideoScreen').default;
+  return <Splash onFinish={onFinish} />;
 }

@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
 import ResponsiveContainer from '../../components/ResponsiveContainer';
 import ResponsiveGrid from '../../components/ResponsiveGrid';
+import DatePickerCalendar from '../../components/DatePickerCalendar';
+import { Modal } from 'react-native';
 
 const REPORTES = [
   { key: 'citas', titulo: 'Reportes de citas', sub: 'Resumen de citas agregadas', color: colors.info, icon: 'calendar' },
@@ -14,6 +16,8 @@ const REPORTES = [
 ];
 
 export default function ReportesScreen({ navigation }: any) {
+  const [rangoLabel, setRangoLabel] = React.useState('01/05/2026 - 31/05/2026');
+  const [showCalendar, setShowCalendar] = React.useState(false);
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={styles.header}>
@@ -21,11 +25,35 @@ export default function ReportesScreen({ navigation }: any) {
       </View>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <ResponsiveContainer style={styles.body}>
-          <View style={styles.rangoBox}>
+          <Pressable style={styles.rangoBox} onPress={() => setShowCalendar(true)}>
             <Ionicons name="calendar-outline" size={14} color={colors.text} />
-            <Text style={styles.rangoText}>01/05/2026 - 31/05/2026</Text>
+            <Text style={styles.rangoText}>{rangoLabel}</Text>
             <Ionicons name="chevron-down" size={14} color={colors.text} />
-          </View>
+          </Pressable>
+          <Modal visible={showCalendar} transparent animationType="fade">
+            <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 }}>
+              <View style={{ backgroundColor: colors.card, borderRadius: 12, padding: 12 }}>
+                <DatePickerCalendar
+                  value={'01/05/2026'}
+                  validateAdult={false}
+                  onChangeText={(text) => {
+                    // Convert selected date to month range
+                    const parts = text.split('/');
+                    if (parts.length === 3) {
+                      const day = parts[0];
+                      const month = parts[1];
+                      const year = parts[2];
+                      const start = `01/${month}/${year}`;
+                      const end = new Date(Number(year), Number(month), 0).getDate();
+                      const endLabel = `${String(end).padStart(2, '0')}/${month}/${year}`;
+                      setRangoLabel(`${start} - ${endLabel}`);
+                      setShowCalendar(false);
+                    }
+                  }}
+                />
+              </View>
+            </View>
+          </Modal>
           <Pressable style={styles.avisoGeneralBtn} onPress={() => navigation.navigate('AvisoGeneral')}>
             <Ionicons name="megaphone" size={18} color={colors.white} />
             <Text style={styles.avisoGeneralText}>Enviar aviso general</Text>

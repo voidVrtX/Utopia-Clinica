@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'react-native';
 import { colors, radius, spacing } from '../../theme/theme';
 import Button from '../../components/Button';
 import { AvisosController } from '../../controllers/AvisosController';
@@ -27,7 +28,7 @@ export default function AvisoGeneralAdminScreen({ navigation }: any) {
   if (enviado) {
     return (
       <View style={styles.confirmContainer}>
-        <Ionicons name="medkit" size={40} color={colors.white} />
+        <Image source={require('../../../assets/reemplazar_medikit.png')} style={styles.brandLogo} />
         <Text style={styles.brand}>UTOPÍA</Text>
         <View style={styles.confirmCard}>
           <Text style={styles.confirmTitulo}>Reporte</Text>
@@ -72,6 +73,7 @@ const styles = StyleSheet.create({
   textarea: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm, padding: 12, minHeight: 120, textAlignVertical: 'top', backgroundColor: colors.white, color: colors.text, marginBottom: spacing.md },
   confirmContainer: { flex: 1, backgroundColor: colors.purple, alignItems: 'center', paddingTop: spacing.xl * 1.5, padding: spacing.lg },
   brand: { color: colors.white, fontSize: 22, fontWeight: '800', letterSpacing: 2, marginTop: spacing.sm, marginBottom: spacing.xl },
+  brandLogo: { width: 44, height: 44, tintColor: colors.white },
   confirmCard: { backgroundColor: colors.white, borderRadius: radius.lg, padding: spacing.lg, width: '100%', alignItems: 'center' },
   confirmTitulo: { color: colors.purple, fontWeight: '800', fontSize: 16, marginBottom: spacing.sm },
   iconCircle: { width: 70, height: 70, borderRadius: 35, backgroundColor: colors.purpleBg, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm },
