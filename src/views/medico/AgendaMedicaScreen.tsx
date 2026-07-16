@@ -1,75 +1,150 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
-import WeekStrip from '../../components/WeekStrip';
-import Badge from '../../components/Badge';
-import ResponsiveContainer from '../../components/ResponsiveContainer';
-import ResponsiveGrid from '../../components/ResponsiveGrid';
-import { useAgendaMedicaViewModel } from '../../viewmodels/useMedicoAgendaViewModel';
-import { formatFechaLarga } from '../../utils/helpers';
 
-export default function AgendaMedicaScreen({ navigation }: any) {
-  const { fechaISO, setFechaISO, citas, resumen, cargando } = useAgendaMedicaViewModel();
+type Props = {
+  selectedISO: string;
+  onSelect: (iso: string) => void;
+};
+
+const DIAS_CORTOS = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+function toISO(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function fromISO(iso: string) {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function startOfWeek(d: Date) {
+  const date = new Date(d);
+  date.setDate(date.getDate() - date.getDay());
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function addDays(d: Date, n: number) {
+  const date = new Date(d);
+  date.setDate(date.getDate() + n);
+  return date;
+}
+
+function addMonths(d: Date, n: number) {
+  const date = new Date(d);
+  date.setMonth(date.getMonth() + n);
+  return date;
+}
+
+function isSameDay(a: Date, b: Date) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+export default function WeekStrip({ selectedISO, onSelect }: Props) {
+  const selectedDate = useMemo(() => fromISO(selectedISO), [selectedISO]);
+  const [modo, setModo] = useState<'semana' | 'mes'>('semana');
+  const [refDate, setRefDate] = useState<Date>(selectedDate);
+  const hoy = new Date();
+
+  const inicioSemana = startOfWeek(refDate);
+  const diasSemana = Array.from({ length: 7 }, (_, i) => addDays(inicioSemana, i));
+  const irSemanaAnterior = () => setRefDate(addDays(inicioSemana, -7));
+  const irSemanaSiguiente = () => setRefDate(addDays(inicioSemana, 7));
+
+  const inicioMes = new Date(refDate.getFullYear(), refDate.getMonth(), 1);
+  const inicioGridMes = startOfWeek(inicioMes);
+  const diasMes = Array.from({ length: 42 }, (_, i) => addDays(inicioGridMes, i));
+  const irMesAnterior = () => setRefDate(addMonths(inicioMes, -1));
+  const irMesSiguiente = () => setRefDate(addMonths(inicioMes, 1));
+
+  const seleccionar = (d: Date) => {
+    onSelect(toISO(d));
+    setRefDate(d);
+    if (modo === 'mes') setModo('semana');
+  };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Agenda médica</Text>
+    <View style={styles.container}>
+      <View style={styles.topBar}>
+        <Pressable onPress={modo === 'semana' ? irSemanaAnterior : irMesAnterior} hitSlop={10}>
+          <Text style={styles.flecha}>‹</Text>
+        </Pressable>
+        <Pressable onPress={() => setModo(modo === 'semana' ? 'mes' : 'semana')} style={styles.tituloBtn}>
+          <Text style={styles.titulo}>{MESES[refDate.getMonth()]} {refDate.getFullYear()}</Text>
+          <Text style={styles.subtitulo}>{modo === 'semana' ? 'Ver mes ▾' : 'Ver semana ▴'}</Text>
+        </Pressable>
+        <Pressable onPress={modo === 'semana' ? irSemanaSiguiente : irMesSiguiente} hitSlop={10}>
+          <Text style={styles.flecha}>›</Text>
+        </Pressable>
       </View>
-      <WeekStrip selectedISO={fechaISO} onSelect={setFechaISO} />
-      <ResponsiveContainer style={{ width: '100%' }}>
-        <View style={styles.resumenRow}>
-          <ResumenPill label="Total Citas" value={resumen.total} color={colors.info} />
-          <ResumenPill label="Atendidas" value={resumen.atendidas} color={colors.success} />
-          <ResumenPill label="Pendientes" value={resumen.pendientes} color={colors.gold} />
-        </View>
-      </ResponsiveContainer>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <ResponsiveContainer style={styles.body}>
-          <Text style={styles.fechaLarga}>Agenda del día — {formatFechaLarga(fechaISO)}</Text>
-          {cargando ? (
-            <Text style={styles.muted}>Cargando…</Text>
-          ) : citas.length === 0 ? (
-            <Text style={styles.muted}>No hay citas para este día.</Text>
-          ) : (
-            <ResponsiveGrid>
-              {citas.map((c) => (
-                <Pressable key={c.id} style={styles.row} onPress={() => navigation.navigate('DetalleCitaMedico', { citaId: c.id })}>
-                  <Text style={styles.hora}>{c.hora}</Text>
-                  <View style={{ flex: 1, marginLeft: spacing.sm }}>
-                    <Text style={styles.titulo}>{c.motivo ?? 'Consulta'}</Text>
+
+      {modo === 'semana' ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.semanaRow}>
+          {diasSemana.map((d) => {
+            const seleccionado = isSameDay(d, selectedDate);
+            const esHoy = isSameDay(d, hoy);
+            return (
+              <Pressable key={toISO(d)} onPress={() => seleccionar(d)} style={[styles.diaSemana, seleccionado && styles.diaSeleccionado]}>
+                <Text style={[styles.diaLetra, seleccionado && styles.textoSeleccionado]}>{DIAS_CORTOS[d.getDay()]}</Text>
+                <Text style={[styles.diaNumero, seleccionado && styles.textoSeleccionado, esHoy && !seleccionado && styles.textoHoy]}>
+                  {d.getDate()}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      ) : (
+        <View>
+          <View style={styles.diasCortosRow}>
+            {DIAS_CORTOS.map((d, i) => <Text key={i} style={styles.diaCortoMes}>{d}</Text>)}
+          </View>
+          <View style={styles.mesGrid}>
+            {diasMes.map((d) => {
+              const seleccionado = isSameDay(d, selectedDate);
+              const esHoy = isSameDay(d, hoy);
+              const delMes = d.getMonth() === refDate.getMonth();
+              return (
+                <Pressable key={toISO(d)} onPress={() => seleccionar(d)} style={styles.diaMesCelda}>
+                  <View style={[styles.diaMesCirculo, seleccionado && styles.diaSeleccionado]}>
+                    <Text style={[styles.diaMesTexto, !delMes && styles.diaMesTextoFuera, seleccionado && styles.textoSeleccionado, esHoy && !seleccionado && styles.textoHoy]}>
+                      {d.getDate()}
+                    </Text>
                   </View>
-                  <Badge estado={c.estado} />
                 </Pressable>
-              ))}
-            </ResponsiveGrid>
-          )}
-        </ResponsiveContainer>
-      </ScrollView>
+              );
+            })}
+          </View>
+        </View>
+      )}
     </View>
   );
 }
 
-function ResumenPill({ label, value, color }: { label: string; value: number; color: string }) {
-  return (
-    <View style={styles.pill}>
-      <Text style={[styles.pillValue, { color }]}>{value}</Text>
-      <Text style={styles.pillLabel}>{label}</Text>
-    </View>
-  );
-}
-
+const DIA_SIZE = 40;
 const styles = StyleSheet.create({
-  header: { backgroundColor: colors.primary, padding: spacing.md, paddingTop: spacing.lg },
-  headerTitle: { color: colors.white, fontWeight: '800', fontSize: 18, textAlign: 'center' },
-  resumenRow: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: spacing.sm, backgroundColor: colors.card, marginHorizontal: spacing.md, borderRadius: radius.md, ...shadow },
-  pill: { alignItems: 'center' },
-  pillValue: { fontWeight: '800', fontSize: 18 },
-  pillLabel: { fontSize: 10.5, color: colors.textMuted },
-  body: { padding: spacing.md, paddingBottom: spacing.xl },
-  fechaLarga: { fontWeight: '700', fontSize: 13, color: colors.text, marginBottom: spacing.sm, textTransform: 'capitalize' },
-  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: radius.md, padding: spacing.sm, marginBottom: spacing.sm, ...shadow },
-  hora: { fontWeight: '800', color: colors.primary, fontSize: 13, width: 54 },
-  titulo: { fontWeight: '600', color: colors.text, fontSize: 13 },
-  muted: { color: colors.textMuted },
+  container: { backgroundColor: colors.card, paddingVertical: spacing.sm, marginHorizontal: spacing.md, borderRadius: radius.md, ...shadow },
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.md, marginBottom: spacing.xs },
+  flecha: { fontSize: 22, color: colors.primary, fontWeight: '700', paddingHorizontal: spacing.xs },
+  tituloBtn: { alignItems: 'center' },
+  titulo: { fontWeight: '800', fontSize: 14, color: colors.text, textTransform: 'capitalize' },
+  subtitulo: { fontSize: 10.5, color: colors.textMuted },
+  semanaRow: { paddingHorizontal: spacing.sm },
+  diaSemana: { width: DIA_SIZE, height: DIA_SIZE + 14, alignItems: 'center', justifyContent: 'center', marginHorizontal: 3, borderRadius: radius.md },
+  diaSeleccionado: { backgroundColor: colors.primary },
+  diaLetra: { fontSize: 10.5, color: colors.textMuted, fontWeight: '600' },
+  diaNumero: { fontSize: 15, color: colors.text, fontWeight: '700', marginTop: 2 },
+  textoSeleccionado: { color: colors.white },
+  textoHoy: { color: colors.primary },
+  diasCortosRow: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: spacing.sm, marginBottom: spacing.xs },
+  diaCortoMes: { width: `${100/7}%`, textAlign: 'center', fontSize: 10.5, color: colors.textMuted, fontWeight: '600' },
+  mesGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.sm },
+  diaMesCelda: { width: `${100/7}%`, alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },
+  diaMesCirculo: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  diaMesTexto: { fontSize: 13, color: colors.text, fontWeight: '600' },
+  diaMesTextoFuera: { color: colors.textMuted, opacity: 0.4 },
 });

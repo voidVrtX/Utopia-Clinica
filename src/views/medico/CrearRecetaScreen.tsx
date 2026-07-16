@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     minWidth: 80,
   },
   unitBox: {
-    backgroundColor: colors.secondaryBg,
+    backgroundColor: colors.primaryLight,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: 12,

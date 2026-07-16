@@ -18,11 +18,13 @@ export default function HistorialMedicoScreen({ navigation }: any) {
     setExportando(true);
     try {
       if (formato === 'PDF') {
-        await ExportService.exportarCitasPDF();
+        // Pasamos 'proximas' (tus datos) al servicio
+        await ExportService.exportarCitasPDF(proximas);
       } else {
-        await ExportService.exportarCitasExcel();
+        await ExportService.exportarCitasExcel(proximas);
       }
-    } catch {
+    } catch (error) {
+      console.error(error);
       Alert.alert('Exportar histórico', 'No se pudo generar el archivo. Intenta de nuevo.');
     } finally {
       setExportando(false);
