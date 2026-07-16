@@ -15,14 +15,14 @@ import {
 } from '../../controllers/ReportesController';
 import { ExportService } from '../../services/exportService';
 
-const EXPORTADORES: Record<TipoReporte, { pdf: () => Promise<void>; excel: () => Promise<void> } | null> = {
-  citas: { pdf: () => ExportService.exportarCitasPDF(), excel: () => ExportService.exportarCitasExcel() },
+const EXPORTADORES: Record<TipoReporte, { pdf: (datos: any[]) => Promise<void>; excel: (datos: any[]) => Promise<void> } | null> = {
+  citas: { pdf: (datos) => ExportService.exportarCitasPDF(datos), excel: (datos) => ExportService.exportarCitasExcel(datos) },
   cancelaciones: {
-    pdf: () => ExportService.exportarCancelacionesPDF(),
-    excel: () => ExportService.exportarCancelacionesExcel(),
+    pdf: (datos) => ExportService.exportarCancelacionesPDF(datos),
+    excel: (datos) => ExportService.exportarCancelacionesExcel(datos),
   },
-  pacientes: { pdf: () => ExportService.exportarPacientesPDF(), excel: () => ExportService.exportarPacientesExcel() },
-  medicos: { pdf: () => ExportService.exportarMedicosPDF(), excel: () => ExportService.exportarMedicosExcel() },
+  pacientes: { pdf: (datos) => ExportService.exportarPacientesPDF(datos), excel: (datos) => ExportService.exportarPacientesExcel(datos) },
+  medicos: { pdf: (datos) => ExportService.exportarMedicosPDF(datos), excel: (datos) => ExportService.exportarMedicosExcel(datos) },
 };
 
 export default function ReporteDetalleScreen({ route, navigation }: any) {
@@ -47,7 +47,7 @@ export default function ReporteDetalleScreen({ route, navigation }: any) {
         onPress: async () => {
           setExportando(true);
           try {
-            await exportador.pdf();
+            await exportador.pdf(datos);
           } catch {
             Alert.alert('Exportar', 'No se pudo generar el archivo. Intenta de nuevo.');
           } finally {
@@ -60,7 +60,7 @@ export default function ReporteDetalleScreen({ route, navigation }: any) {
         onPress: async () => {
           setExportando(true);
           try {
-            await exportador.excel();
+            await exportador.excel(datos);
           } catch {
             Alert.alert('Exportar', 'No se pudo generar el archivo. Intenta de nuevo.');
           } finally {

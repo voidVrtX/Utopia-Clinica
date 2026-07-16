@@ -3,7 +3,53 @@ import { Cita } from '../models/Cita';
 import { CitasController } from '../controllers/CitasController';
 import { useSession } from '../context/SessionContext';
 
-const HOY_ISO = '2026-06-10'; // fecha de referencia usada en los datos de ejemplo
+const FECHA_LIMITE_ISO = '2026-12-31';
+
+function toISODate(date: Date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+const HOY_ISO = toISODate(new Date());
+
+type VistaAgenda = 'semana' | 'mes';
+
+function startOfWeek(date: Date) {
+  const d = new Date(date);
+  d.setDate(d.getDate() - d.getDay());
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function endOfWeek(date: Date) {
+  const d = startOfWeek(date);
+  d.setDate(d.getDate() + 6);
+  return d;
+}
+
+function startOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function endOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+}
+
+function getRango(selectedDateISO: string, vista: VistaAgenda) {
+  const selected = new Date(`${selectedDateISO}T00:00:00`);
+  if (vista === 'semana') {
+    return {
+      inicio: toISODate(startOfWeek(selected)),
+      fin: toISODate(endOfWeek(selected)),
+    };
+  }
+  return {
+    inicio: toISODate(startOfMonth(selected)),
+    fin: toISODate(endOfMonth(selected)),
+  };
+}
 
 export function useMedicoHomeViewModel() {
   const { usuario } = useSession();
@@ -39,17 +85,22 @@ export function useMedicoHomeViewModel() {
 
 export function useAgendaMedicaViewModel() {
   const { usuario } = useSession();
-  const [fechaISO, setFechaISO] = useState(HOY_ISO);
+  const [selectedDateISO, setSelectedDateISO] = useState(HOY_ISO);
+  const [vista, setVista] = useState<VistaAgenda>('semana');
   const [citas, setCitas] = useState<Cita[]>([]);
   const [cargando, setCargando] = useState(true);
 
   const cargar = useCallback(async () => {
     if (!usuario) return;
     setCargando(true);
-    const data = await CitasController.listarPorMedicoYFecha(usuario.id, fechaISO);
-    setCitas(data);
+    const todas = await CitasController.listarPorMedico(usuario.id);
+    const rango = getRango(selectedDateISO, vista);
+    const filtradas = todas
+      .filter((c) => c.fechaISO >= rango.inicio && c.fechaISO <= rango.fin && c.fechaISO <= FECHA_LIMITE_ISO)
+      .sort((a, b) => (a.fechaISO + a.hora).localeCompare(b.fechaISO + b.hora));
+    setCitas(filtradas);
     setCargando(false);
-  }, [usuario, fechaISO]);
+  }, [usuario, selectedDateISO, vista]);
 
   useEffect(() => {
     cargar();
@@ -61,5 +112,15 @@ export function useAgendaMedicaViewModel() {
     pendientes: citas.filter((c) => c.estado === 'Pendiente' || c.estado === 'En sala de espera').length,
   };
 
-  return { fechaISO, setFechaISO, citas, resumen, cargando, recargar: cargar };
+  return {
+    selectedDateISO,
+    setSelectedDateISO,
+    vista,
+    setVista,
+    citas,
+    resumen,
+    cargando,
+    recargar: cargar,
+    fechaLimite: FECHA_LIMITE_ISO,
+  };
 }

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
-import Badge from '../../components/Badge';
 import ResponsiveContainer from '../../components/ResponsiveContainer';
 import ResponsiveGrid from '../../components/ResponsiveGrid';
 import { useHistorialMedicoViewModel } from '../../viewmodels/useHistorialMedicoViewModel';
@@ -10,18 +9,33 @@ import { formatFechaCorta } from '../../utils/helpers';
 import { ExportService } from '../../services/exportService';
 
 export default function HistorialMedicoScreen({ navigation }: any) {
-  const { proximas, cargando } = useHistorialMedicoViewModel();
-  const [rango] = useState('01/05/2026 - 31/05/2026');
+  const { proximas, recetas, cargando } = useHistorialMedicoViewModel();
+  const [rango] = useState('01/06/2026 - 31/12/2026');
   const [exportando, setExportando] = useState(false);
 
-  const exportar = async (formato: 'PDF' | 'Excel') => {
+  const exportar = async (formato: 'PDF' | 'Excel', tipo: 'citas' | 'recetas') => {
     setExportando(true);
     try {
-      if (formato === 'PDF') {
-        // Pasamos 'proximas' (tus datos) al servicio
-        await ExportService.exportarCitasPDF(proximas);
+      if (tipo === 'recetas') {
+        if (recetas.length === 0) {
+          Alert.alert('Exportar recetas', 'No hay recetas para exportar.');
+          return;
+        }
+        if (formato === 'PDF') {
+          await ExportService.exportarRecetasPDF(recetas);
+        } else {
+          await ExportService.exportarRecetasExcel(recetas);
+        }
       } else {
-        await ExportService.exportarCitasExcel(proximas);
+        if (proximas.length === 0) {
+          Alert.alert('Exportar citas', 'No hay citas para exportar.');
+          return;
+        }
+        if (formato === 'PDF') {
+          await ExportService.exportarCitasPDF(proximas);
+        } else {
+          await ExportService.exportarCitasExcel(proximas);
+        }
       }
     } catch (error) {
       console.error(error);
@@ -45,9 +59,11 @@ export default function HistorialMedicoScreen({ navigation }: any) {
           style={styles.exportBtn}
           disabled={exportando}
           onPress={() =>
-            Alert.alert('Exportar histórico', 'Elige el formato', [
-              { text: 'PDF', onPress: () => exportar('PDF') },
-              { text: 'Excel', onPress: () => exportar('Excel') },
+            Alert.alert('Exportar histórico', 'Elige el tipo y formato', [
+              { text: 'PDF citas', onPress: () => exportar('PDF', 'citas') },
+              { text: 'Excel citas', onPress: () => exportar('Excel', 'citas') },
+              { text: 'PDF recetas', onPress: () => exportar('PDF', 'recetas') },
+              { text: 'Excel recetas', onPress: () => exportar('Excel', 'recetas') },
               { text: 'Cancelar', style: 'cancel' },
             ])
           }
@@ -76,6 +92,21 @@ export default function HistorialMedicoScreen({ navigation }: any) {
               ))}
             </ResponsiveGrid>
           )}
+
+          {recetas.length > 0 ? (
+            <>
+              <Text style={[styles.section, { marginTop: spacing.md }]}>RECETAS</Text>
+              <ResponsiveGrid>
+                {recetas.slice(0, 4).map((r) => (
+                  <View key={r.id} style={styles.card}>
+                    <Text style={styles.nombre}>{r.diagnostico || 'Receta'}</Text>
+                    <Text style={styles.sub}>{r.fecha}</Text>
+                    <Text style={styles.motivo}>{r.medicamentos?.length ? `${r.medicamentos.length} medicamento(s)` : 'Sin medicamentos'}</Text>
+                  </View>
+                ))}
+              </ResponsiveGrid>
+            </>
+          ) : null}
         </ResponsiveContainer>
       </ScrollView>
     </View>

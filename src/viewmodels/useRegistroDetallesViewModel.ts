@@ -37,7 +37,7 @@ const ALERGIAS_COMUNES: AlergiaItem[] = [
 const TIPOS_SANGRE = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
 
 export const useRegistroDetallesViewModel = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { draft, update } = useRegisterDraft();
 
   // Dirección

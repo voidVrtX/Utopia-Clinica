@@ -159,10 +159,10 @@ export default function CameraScanner({
 
 const styles = StyleSheet.create({
   wrap: { flex: 1, backgroundColor: '#000' },
-  camera: { ...StyleSheet.absoluteFillObject, flex: 1 },
+  camera: { ...StyleSheet.absoluteFill, flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg, gap: spacing.sm },
   msg: { color: colors.textMuted, textAlign: 'center', marginBottom: spacing.sm },
-  overlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
+  overlay: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
   frame: { width: 220, height: 220, borderWidth: 3, borderColor: colors.white, borderRadius: radius.md },
   hint: { color: colors.white, marginTop: spacing.md, fontWeight: '600' },
   errorText: { color: colors.danger, marginTop: spacing.sm, textAlign: 'center', paddingHorizontal: spacing.lg },

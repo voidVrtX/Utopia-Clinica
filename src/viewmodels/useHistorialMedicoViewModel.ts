@@ -4,17 +4,23 @@ import { CitasController } from '../controllers/CitasController';
 import { RecetasController } from '../controllers/RecetasController';
 import { useSession } from '../context/SessionContext';
 import { MedicamentoReceta } from '../models/Medicamento';
+import { Receta } from '../models/Receta';
 
 export function useHistorialMedicoViewModel() {
   const { usuario } = useSession();
   const [citas, setCitas] = useState<Cita[]>([]);
+  const [recetas, setRecetas] = useState<Receta[]>([]);
   const [cargando, setCargando] = useState(true);
 
   const cargar = useCallback(async () => {
     if (!usuario) return;
     setCargando(true);
-    const data = await CitasController.listarPorMedico(usuario.id);
-    setCitas(data.sort((a, b) => (a.fechaISO + a.hora < b.fechaISO + b.hora ? 1 : -1)));
+    const [citasData, recetasData] = await Promise.all([
+      CitasController.listarPorMedico(usuario.id),
+      RecetasController.listarPorMedico(usuario.id),
+    ]);
+    setCitas(citasData.sort((a, b) => (a.fechaISO + a.hora < b.fechaISO + b.hora ? 1 : -1)));
+    setRecetas(recetasData.sort((a, b) => (a.fecha < b.fecha ? 1 : -1)));
     setCargando(false);
   }, [usuario]);
 
@@ -24,7 +30,7 @@ export function useHistorialMedicoViewModel() {
 
   const proximas = citas.filter((c) => c.estado === 'Confirmada' || c.estado === 'Pendiente' || c.estado === 'En sala de espera');
 
-  return { citas, proximas, cargando, recargar: cargar };
+  return { citas, proximas, recetas, cargando, recargar: cargar };
 }
 
 export function useCrearRecetaViewModel(citaId: string) {
