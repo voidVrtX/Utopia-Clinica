@@ -32,9 +32,16 @@ export default function CameraScanner({
   };
 
   const handleScanResult = async (data: string) => {
-    if (!activo) return;
+    if (!activo || !data) return;
     onEscaneado(data);
     await stopScanner();
+  };
+
+  const getBarcodeData = (event: any) => {
+    if (!event) return null;
+    if (typeof event.data === 'string') return event.data;
+    if (event.nativeEvent?.data) return event.nativeEvent.data;
+    return null;
   };
 
   const iniciarEscaner = async () => {
@@ -127,8 +134,8 @@ export default function CameraScanner({
         <CameraView
           style={styles.camera}
           facing="back"
-          onBarcodeScanned={({ data }) => handleScanResult(data)}
-          barCodeScannerSettings={{ barCodeTypes: ['qr'] }}
+          onBarcodeScanned={(event) => handleScanResult(getBarcodeData(event))}
+          barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
         />
         <View style={styles.overlay} pointerEvents="none">
           <View style={styles.frame} />
