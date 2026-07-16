@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, spacing } from '../../theme/theme';
 import TextField from '../../components/TextField';
@@ -57,7 +57,7 @@ export default function RegisterStep3Screen({ navigation }: any) {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={styles.headerBg}>
         <Ionicons name="arrow-back" size={22} color={colors.white} onPress={() => navigation.goBack()} style={styles.back} />
-        <Ionicons name="medkit" size={40} color={colors.white} />
+        <Image source={require('../../assets/brand/logo-negro.png')} style={{ width: 40, height: 40, borderRadius: 10 }} resizeMode="contain" />
         <Text style={styles.brand}>UTOPÍA</Text>
       </View>
       <ScrollView contentContainerStyle={styles.body}>

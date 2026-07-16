@@ -1,6 +1,5 @@
 import React from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, spacing } from '../../theme/theme';
 import TextField from '../../components/TextField';
 import Button from '../../components/Button';
@@ -13,7 +12,7 @@ export default function LoginScreen({ navigation }: any) {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.header}>
-        <Ionicons name="medkit" size={46} color={colors.white} />
+        <Image source={require('../../assets/brand/logo-negro.png')} style={{ width: 46, height: 46, borderRadius: 12 }} resizeMode="contain" />
         <Text style={styles.brand}>UTOPÍA</Text>
         <Text style={styles.brandSub}>CLÍNICA MÉDICA</Text>
       </View>

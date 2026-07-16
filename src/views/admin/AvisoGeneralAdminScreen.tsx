@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, spacing } from '../../theme/theme';
 import Button from '../../components/Button';
@@ -27,7 +27,7 @@ export default function AvisoGeneralAdminScreen({ navigation }: any) {
   if (enviado) {
     return (
       <View style={styles.confirmContainer}>
-        <Ionicons name="medkit" size={40} color={colors.white} />
+        <Image source={require('../../assets/brand/logo-negro.png')} style={{ width: 40, height: 40, borderRadius: 10 }} resizeMode="contain" />
         <Text style={styles.brand}>UTOPÍA</Text>
         <View style={styles.confirmCard}>
           <Text style={styles.confirmTitulo}>Reporte</Text>

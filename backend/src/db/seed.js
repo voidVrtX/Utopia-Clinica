@@ -424,9 +424,9 @@ async function seed() {
       'Si el dolor persiste por más de 72 horas o se acompaña de otros síntomas, regresar para valoración.',
       '120/80 mmHg',
       '36.7 °C',
-      [
+      JSON.stringify([
         { id: 'm1', nombre: 'Paracetamol', dosis: '500 mg cada 8h', entregado: false, agotado: false }
-      ],
+      ]),
       true,
     ]);
 
