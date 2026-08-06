@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
 import Badge from '../../components/Badge';
@@ -44,18 +44,15 @@ export default function HistorialMedicoScreen({ navigation }: any) {
           <Ionicons name="calendar-outline" size={14} color={colors.text} />
           <Text style={styles.rangoText}>{startDate ? `${startDate} - ${endDate}` : rango}</Text>
         </Pressable>
-        <Pressable
-          style={styles.exportBtn}
-          disabled={exportando}
-          onPress={() =>
-            Alert.alert('Exportar histórico', 'Elige el formato', [
-              { text: 'PDF', onPress: () => exportar('PDF') },
-              { text: 'Excel', onPress: () => exportar('Excel') },
-              { text: 'Cancelar', style: 'cancel' },
-            ])
-          }
-        >
-          <Text style={styles.exportBtnText}>{exportando ? 'Generando…' : 'EXPORTAR'}</Text>
+      </ResponsiveContainer>
+      <ResponsiveContainer style={styles.exportCardsRow}>
+        <Pressable style={[styles.exportCard, styles.pdfCard]} onPress={() => exportar('PDF')} disabled={exportando}>
+          <Ionicons name="document-text-outline" size={22} color={colors.white} />
+          <Text style={styles.exportCardTitle}>Exportar como PDF</Text>
+        </Pressable>
+        <Pressable style={[styles.exportCard, styles.excelCard]} onPress={() => exportar('Excel')} disabled={exportando}>
+          <Ionicons name="layers-outline" size={22} color={colors.white} />
+          <Text style={styles.exportCardTitle}>Exportar como Excel</Text>
         </Pressable>
       </ResponsiveContainer>
       <Modal visible={showCalendar} transparent animationType="fade">
@@ -116,6 +113,11 @@ const styles = StyleSheet.create({
   rangoText: { fontSize: 12, color: colors.text },
   exportBtn: { backgroundColor: colors.primary, paddingHorizontal: 14, paddingVertical: 9, borderRadius: radius.sm },
   exportBtnText: { color: colors.white, fontWeight: '800', fontSize: 11.5 },
+  exportCardsRow: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.sm, paddingHorizontal: spacing.md, marginBottom: spacing.lg },
+  exportCard: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderRadius: radius.md, padding: spacing.md, minHeight: 96, justifyContent: 'center', backgroundColor: colors.primary, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
+  pdfCard: { backgroundColor: colors.primary },
+  excelCard: { backgroundColor: '#2B7A73' },
+  exportCardTitle: { color: colors.white, fontWeight: '800', fontSize: 14, textAlign: 'center' },
   body: { padding: spacing.md, paddingTop: 0, paddingBottom: spacing.xl },
   section: { fontWeight: '800', fontSize: 12, color: colors.textMuted, marginBottom: spacing.sm },
   card: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm, ...shadow },

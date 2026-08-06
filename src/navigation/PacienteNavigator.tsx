@@ -10,6 +10,7 @@ import DetalleCitaScreen from '../views/paciente/DetalleCitaScreen';
 import ModificarCitaScreen from '../views/paciente/ModificarCitaScreen';
 import ConfirmacionScreen from '../views/paciente/ConfirmacionScreen';
 import PerfilScreen from '../views/shared/PerfilScreen';
+import AvisoDetalleScreen from '../views/shared/AvisoDetalleScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,6 +23,7 @@ export default function PacienteNavigator() {
       <Stack.Screen name="RecetaIndividual" component={RecetaIndividualScreen} />
       <Stack.Screen name="MisMedicos" component={MisMedicosScreen} />
       <Stack.Screen name="MedicoIndividual" component={MedicoIndividualScreen} />
+      <Stack.Screen name="AvisoDetalle" component={AvisoDetalleScreen} />
       <Stack.Screen name="DetalleCita" component={DetalleCitaScreen} />
       <Stack.Screen name="ModificarCita" component={ModificarCitaScreen} />
       <Stack.Screen name="Confirmacion" component={ConfirmacionScreen} />

@@ -21,6 +21,30 @@ export default function AvisosScreen({ navigation, route }: any) {
   const userId = route?.params?.userId ?? usuario?.id ?? 'admin';
   const { avisosHoy, avisosAnteriores, cargando, limpiarTodo } = useAvisosViewModel(userId);
 
+  const openAviso = (aviso: any) => {
+    const parent = navigation.getParent();
+    if (parent?.navigate) {
+      parent.navigate('AvisoDetalle', { aviso });
+      return;
+    }
+    navigation.navigate('AvisoDetalle', { aviso });
+  };
+
+  const renderCard = (aviso: any, faded = false) => (
+    <Pressable key={aviso.id} onPress={() => openAviso(aviso)} style={({ pressed }) => [styles.card, faded ? styles.cardFaded : null, pressed ? styles.cardPressed : null]}>
+      <Ionicons
+        name={ICONS[aviso.tipo] ?? 'notifications'}
+        size={20}
+        color={faded ? colors.textMuted : colors.primary}
+        style={{ marginRight: spacing.sm }}
+      />
+      <View style={{ flex: 1 }}>
+        <Text style={styles.titulo}>{aviso.titulo}</Text>
+        {aviso.detalle ? <Text style={styles.detalle}>{aviso.detalle}</Text> : null}
+      </View>
+    </Pressable>
+  );
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={styles.header}>
@@ -39,33 +63,13 @@ export default function AvisosScreen({ navigation, route }: any) {
           ) : avisosHoy.length === 0 ? (
             <Text style={styles.muted}>Sin avisos por hoy.</Text>
           ) : (
-            <ResponsiveGrid>
-              {avisosHoy.map((a) => (
-                <View key={a.id} style={styles.card}>
-                  <Ionicons name={ICONS[a.tipo] ?? 'notifications'} size={20} color={colors.primary} style={{ marginRight: spacing.sm }} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.titulo}>{a.titulo}</Text>
-                    {a.detalle ? <Text style={styles.detalle}>{a.detalle}</Text> : null}
-                  </View>
-                </View>
-              ))}
-            </ResponsiveGrid>
+            <ResponsiveGrid>{avisosHoy.map((aviso) => renderCard(aviso))}</ResponsiveGrid>
           )}
 
           {avisosAnteriores.length > 0 && (
             <>
               <Text style={[styles.section, { marginTop: spacing.md }]}>Anteriores</Text>
-              <ResponsiveGrid>
-                {avisosAnteriores.map((a) => (
-                  <View key={a.id} style={[styles.card, { opacity: 0.55 }]}>
-                    <Ionicons name={ICONS[a.tipo] ?? 'notifications'} size={20} color={colors.textMuted} style={{ marginRight: spacing.sm }} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.titulo}>{a.titulo}</Text>
-                      {a.detalle ? <Text style={styles.detalle}>{a.detalle}</Text> : null}
-                    </View>
-                  </View>
-                ))}
-              </ResponsiveGrid>
+              <ResponsiveGrid>{avisosAnteriores.map((aviso) => renderCard(aviso, true))}</ResponsiveGrid>
             </>
           )}
         </ResponsiveContainer>
@@ -82,6 +86,8 @@ const styles = StyleSheet.create({
   section: { fontWeight: '800', fontSize: 13, color: colors.textMuted },
   limpiar: { color: colors.primary, fontWeight: '700', fontSize: 12.5 },
   card: { flexDirection: 'row', backgroundColor: colors.card, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm, ...shadow },
+  cardFaded: { opacity: 0.55 },
+  cardPressed: { opacity: 0.7 },
   titulo: { fontWeight: '700', fontSize: 13.5, color: colors.text },
   detalle: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
   muted: { color: colors.textMuted },

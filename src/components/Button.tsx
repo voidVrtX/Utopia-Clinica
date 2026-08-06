@@ -5,7 +5,7 @@ import { colors, radius, spacing } from '../theme/theme';
 interface Props {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'outline' | 'danger' | 'ghost';
+  variant?: 'primary' | 'outline' | 'danger' | 'warning' | 'ghost';
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle;
@@ -13,9 +13,25 @@ interface Props {
 
 export default function Button({ title, onPress, variant = 'primary', disabled, loading, style }: Props) {
   const bg =
-    variant === 'primary' ? colors.primary : variant === 'danger' ? colors.danger : 'transparent';
-  const borderColor = variant === 'outline' ? colors.primary : variant === 'danger' ? colors.danger : 'transparent';
-  const textColor = variant === 'outline' ? colors.primary : variant === 'ghost' ? colors.primary : colors.white;
+    variant === 'primary'
+      ? colors.primary
+      : variant === 'danger'
+      ? colors.danger
+      : variant === 'warning'
+      ? colors.warning
+      : 'transparent';
+  const borderColor =
+    variant === 'outline'
+      ? colors.primary
+      : variant === 'danger'
+      ? colors.danger
+      : variant === 'warning'
+      ? colors.warning
+      : 'transparent';
+  const textColor =
+    variant === 'outline' || variant === 'ghost'
+      ? colors.primary
+      : colors.white;
 
   return (
     <Pressable

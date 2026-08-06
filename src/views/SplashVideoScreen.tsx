@@ -1,19 +1,34 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, View, Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { colors } from '../theme/theme';
 
-export default function SplashVideoScreen({ onFinish }: { onFinish?: () => void }) {
-  const video = useRef<any>(null);
+function NativeSplashVideo({ onFinish }: { onFinish?: () => void }) {
   const splashVideo = require('../../assets/splash_video.mp4');
-  const navigation = useNavigation();
+  const { VideoView, useVideoPlayer } = require('expo-video');
+  const player = useVideoPlayer(splashVideo, (playerInstance: any) => {
+    playerInstance.muted = true;
+    playerInstance.loop = false;
+    playerInstance.play();
+    if (typeof playerInstance.addListener === 'function') {
+      playerInstance.addListener('playToEnd', () => onFinish?.());
+    }
+  });
+
+  return <VideoView player={player} style={styles.video} resizeMode="cover" />;
+}
+
+export default function SplashVideoScreen({ onFinish }: { onFinish?: () => void }) {
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      // safety fallback in case playback events fail
+    timerRef.current = setTimeout(() => {
+      onFinish?.();
     }, 9000);
-    return () => clearTimeout(timer);
-  }, []);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [onFinish]);
 
   return (
     <Pressable style={styles.container} onPress={() => onFinish?.()} accessibilityLabel="Saltar">
@@ -21,7 +36,7 @@ export default function SplashVideoScreen({ onFinish }: { onFinish?: () => void 
         // Use native HTML5 video element on web to avoid bundler issues with expo-av
         // eslint-disable-next-line jsx-a11y/media-has-caption
         <video
-          src={splashVideo}
+          src={require('../../assets/splash_video.mp4')}
           style={styles.video as any}
           autoPlay
           muted
@@ -29,38 +44,7 @@ export default function SplashVideoScreen({ onFinish }: { onFinish?: () => void 
           onEnded={() => onFinish?.()}
         />
       ) : (
-        // load expo-video dynamically on native platforms and guard if not available
-        (() => {
-          // require inside render to avoid bundling on web
-          // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const expoVideo = (() => {
-            try {
-              return require('expo-video');
-            } catch (e) {
-              return null;
-            }
-          })();
-          const VideoView = expoVideo?.VideoView ?? null;
-          if (!VideoView) {
-            // fallback: show nothing or a static image while video not available
-            return <View style={[styles.video, { backgroundColor: colors.primary }]} />;
-          }
-          return (
-            <VideoView
-              ref={video}
-              source={splashVideo}
-              style={styles.video}
-              resizeMode="cover"
-              allowsFullscreen={false}
-              muted
-              onStatusUpdate={(status: any) => {
-                if (status?.isPlaying === false && status?.didJustFinish) {
-                  onFinish?.();
-                }
-              }}
-            />
-          );
-        })()
+        <NativeSplashVideo onFinish={onFinish} />
       )}
     </Pressable>
   );

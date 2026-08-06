@@ -43,52 +43,25 @@ export default function ReporteDetalleScreen({ route, navigation }: any) {
       .finally(() => setCargando(false));
   }, [tipo]);
 
-  const exportar = () => {
-    Alert.alert('Exportar reporte', 'Elige el formato', [
-      {
-        text: 'PDF',
-        onPress: async () => {
-          setExportando(true);
-          try {
-            if (tipo === 'citas') {
-              await ExportService.exportarCitasPDF(startDate ? { startDate, endDate } : undefined);
-            } else if (tipo === 'cancelaciones') {
-              await ExportService.exportarCancelacionesPDF();
-            } else if (tipo === 'pacientes') {
-              await ExportService.exportarPacientesPDF();
-            } else if (tipo === 'medicos') {
-              await ExportService.exportarMedicosPDF();
-            }
-          } catch {
-            Alert.alert('Exportar', 'No se pudo generar el archivo. Intenta de nuevo.');
-          } finally {
-            setExportando(false);
-          }
-        },
-      },
-      {
-        text: 'Excel',
-        onPress: async () => {
-          setExportando(true);
-          try {
-            if (tipo === 'citas') {
-              await ExportService.exportarCitasExcel(startDate ? { startDate, endDate } : undefined);
-            } else if (tipo === 'cancelaciones') {
-              await ExportService.exportarCancelacionesExcel();
-            } else if (tipo === 'pacientes') {
-              await ExportService.exportarPacientesExcel();
-            } else if (tipo === 'medicos') {
-              await ExportService.exportarMedicosExcel();
-            }
-          } catch {
-            Alert.alert('Exportar', 'No se pudo generar el archivo. Intenta de nuevo.');
-          } finally {
-            setExportando(false);
-          }
-        },
-      },
-      { text: 'Cancelar', style: 'cancel' },
-    ]);
+  const exportar = async (formato: 'PDF' | 'Excel') => {
+    setExportando(true);
+    try {
+      if (formato === 'PDF') {
+        if (tipo === 'citas') await ExportService.exportarCitasPDF(startDate ? { startDate, endDate } : undefined);
+        else if (tipo === 'cancelaciones') await ExportService.exportarCancelacionesPDF();
+        else if (tipo === 'pacientes') await ExportService.exportarPacientesPDF();
+        else if (tipo === 'medicos') await ExportService.exportarMedicosPDF();
+      } else {
+        if (tipo === 'citas') await ExportService.exportarCitasExcel(startDate ? { startDate, endDate } : undefined);
+        else if (tipo === 'cancelaciones') await ExportService.exportarCancelacionesExcel();
+        else if (tipo === 'pacientes') await ExportService.exportarPacientesExcel();
+        else if (tipo === 'medicos') await ExportService.exportarMedicosExcel();
+      }
+    } catch {
+      Alert.alert('Exportar', 'No se pudo generar el archivo. Intenta de nuevo.');
+    } finally {
+      setExportando(false);
+    }
   };
 
   return (
@@ -99,12 +72,15 @@ export default function ReporteDetalleScreen({ route, navigation }: any) {
           <Ionicons name="stats-chart-outline" size={14} color={colors.text} />
           <Text style={styles.rangoText}>{datos.length} registro{datos.length === 1 ? '' : 's'}</Text>
         </Pressable>
-        <Pressable style={[styles.exportBtn, { backgroundColor: color }]} onPress={exportar} disabled={exportando}>
-          {exportando ? (
-            <ActivityIndicator size="small" color={colors.white} />
-          ) : (
-            <Text style={styles.exportBtnText}>EXPORTAR</Text>
-          )}
+      </ResponsiveContainer>
+      <ResponsiveContainer style={styles.exportCardsRow}>
+        <Pressable style={[styles.exportCard, { backgroundColor: color }]} onPress={() => exportar('PDF')} disabled={exportando}>
+          <Ionicons name="document-text-outline" size={24} color={colors.white} />
+          <Text style={styles.exportCardTitle}>Exportar como PDF</Text>
+        </Pressable>
+        <Pressable style={[styles.exportCard, { backgroundColor: colors.primary }]} onPress={() => exportar('Excel')} disabled={exportando}>
+          <Ionicons name="layers-outline" size={24} color={colors.white} />
+          <Text style={styles.exportCardTitle}>Exportar como Excel</Text>
         </Pressable>
       </ResponsiveContainer>
 
@@ -203,6 +179,9 @@ const styles = StyleSheet.create({
   rangoText: { fontSize: 12, color: colors.text },
   exportBtn: { paddingHorizontal: 14, justifyContent: 'center', alignItems: 'center', borderRadius: radius.sm, minWidth: 90 },
   exportBtnText: { color: colors.white, fontWeight: '800', fontSize: 11.5 },
+  exportCardsRow: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.sm, paddingHorizontal: spacing.md, marginBottom: spacing.lg },
+  exportCard: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderRadius: radius.md, padding: spacing.md, minHeight: 96, justifyContent: 'center', backgroundColor: colors.primary, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
+  exportCardTitle: { color: colors.white, fontWeight: '800', fontSize: 14, textAlign: 'center' },
   body: { padding: spacing.md, paddingBottom: spacing.xl },
   muted: { color: colors.textMuted, textAlign: 'center', marginTop: spacing.xl },
   card: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm, ...shadow },

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, ScrollView, FlatList } from 'react-native';
+import { Alert, StyleSheet, TouchableOpacity, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, spacing } from '../theme/theme';
 import { notificationManager, Notification } from '../services/notificationService';
@@ -24,7 +24,10 @@ export default function NotificationsPanel({ onClose, visible }: NotificationsPa
   };
 
   const handleDelete = (notificationId: string) => {
-    notificationManager.delete(notificationId);
+    Alert.alert('Eliminar notificación', '¿Deseas eliminar esta notificación?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Eliminar', style: 'destructive', onPress: () => notificationManager.delete(notificationId) },
+    ]);
   };
 
   const getNotificationIcon = (type: Notification['type']) => {
@@ -49,7 +52,7 @@ export default function NotificationsPanel({ onClose, visible }: NotificationsPa
       case 'patient_registered':
         return '#8E24AA';
       case 'document_verified':
-        return '#2E9E5B';
+        return colors.primary;
       case 'alert':
         return colors.warning;
       default:

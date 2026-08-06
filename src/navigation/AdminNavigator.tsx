@@ -7,6 +7,7 @@ import DetalleCitaAdminScreen from '../views/admin/DetalleCitaAdminScreen';
 import ReporteDetalleScreen from '../views/admin/ReporteDetalleScreen';
 import AvisoGeneralAdminScreen from '../views/admin/AvisoGeneralAdminScreen';
 import AvisosScreen from '../views/shared/AvisosScreen';
+import AvisoDetalleScreen from '../views/shared/AvisoDetalleScreen';
 import PerfilScreen from '../views/shared/PerfilScreen';
 
 const Stack = createNativeStackNavigator();
@@ -21,6 +22,7 @@ export default function AdminNavigator() {
       <Stack.Screen name="ReporteDetalle" component={ReporteDetalleScreen} />
       <Stack.Screen name="AvisoGeneral" component={AvisoGeneralAdminScreen} />
       <Stack.Screen name="AvisosAdmin" component={AvisosScreen} initialParams={{ userId: 'admin' }} />
+      <Stack.Screen name="AvisoDetalle" component={AvisoDetalleScreen} />
       <Stack.Screen name="Perfil" component={PerfilScreen} />
     </Stack.Navigator>
   );

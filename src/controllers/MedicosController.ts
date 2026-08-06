@@ -42,8 +42,16 @@ export const MedicosController = {
     }
   },
 
-  async establecerActivo(id: string, activo: boolean): Promise<void> {
-    await this.actualizar(id, { activo });
+  async establecerActivo(id: string, activo: boolean): Promise<Medico> {
+    const medico = await this.actualizar(id, { activo });
+    if (!medico) {
+      throw new Error('No se pudo actualizar el estado del médico.');
+    }
+    return medico;
+  },
+
+  async eliminar(id: string): Promise<void> {
+    await apiClient.delete<void>(`/medicos/${id}`);
   },
 
   async especialidades(): Promise<string[]> {

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { notificationManager, Notification } from '../services/notificationService';
 
 export const useNotifications = () => {
@@ -6,7 +6,7 @@ export const useNotifications = () => {
   const [panelVisible, setPanelVisible] = useState(false);
 
   // Suscribirse a cambios de notificaciones
-  useCallback(() => {
+  useEffect(() => {
     const unsubscribe = notificationManager.subscribe(setNotifications);
     return () => unsubscribe();
   }, []);

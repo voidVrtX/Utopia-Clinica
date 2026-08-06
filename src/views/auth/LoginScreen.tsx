@@ -35,6 +35,7 @@ export default function LoginScreen({ navigation }: any) {
             label="Contraseña"
             placeholder="Ingresa tu contraseña"
             secureTextEntry
+            showPasswordToggle
             value={password}
             onChangeText={setPassword}
           />

@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
 import ScreenHeader from '../../components/ScreenHeader';
 import Avatar from '../../components/Avatar';
 import Button from '../../components/Button';
 import { Medico } from '../../models/User';
 import { MedicosController } from '../../controllers/MedicosController';
+import { AvisosController } from '../../controllers/AvisosController';
+import { notificationManager } from '../../services/notificationService';
 
 export default function MedicoIndividualAdminScreen({ route, navigation }: any) {
   const { medicoId } = route.params;
   const [medico, setMedico] = useState<Medico | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const cargar = () => MedicosController.obtener(medicoId).then(setMedico);
   useEffect(() => {
@@ -18,18 +21,76 @@ export default function MedicoIndividualAdminScreen({ route, navigation }: any) 
 
   if (!medico) return <View style={{ flex: 1, backgroundColor: colors.background }} />;
 
-  const eliminarDesactivar = () => {
-    Alert.alert('Confirmar', `¿${medico.activo ? 'Desactivar' : 'Activar'} a ${medico.nombre}?`, [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: medico.activo ? 'Desactivar' : 'Activar',
-        style: medico.activo ? 'destructive' : 'default',
-        onPress: async () => {
-          await MedicosController.establecerActivo(medico.id, !medico.activo);
-          cargar();
-        },
-      },
-    ]);
+  const confirmAction = async (message: string) => {
+    if (Platform.OS === 'web') {
+      return window.confirm(message);
+    }
+
+    return new Promise<boolean>((resolve) => {
+      Alert.alert('Confirmar', message, [
+        { text: 'Cancelar', style: 'cancel', onPress: () => resolve(false) },
+        { text: 'Aceptar', style: 'default', onPress: () => resolve(true) },
+      ]);
+    });
+  };
+
+  const showMessage = (title: string, message: string) => {
+    if (Platform.OS === 'web') {
+      window.alert(`${title}\n\n${message}`);
+      return;
+    }
+    notificationManager.notifyAlert(title, message);
+  };
+
+  const confirmarToggleActivo = async () => {
+    const action = medico.activo ? 'Desactivar' : 'Activar';
+    const confirmed = await confirmAction(`¿Deseas ${action.toLowerCase()} al Dr. ${medico.nombre}?`);
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      await MedicosController.establecerActivo(medico.id, !medico.activo);
+      cargar();
+      if (medico.activo) {
+        await AvisosController.crear({
+          paraUserId: 'admin',
+          tipo: 'Recordatorio',
+          titulo: 'Aviso amarillo',
+          detalle: `El Dr. ${medico.nombre} ha sido desactivado.`,
+          fechaISO: new Date().toISOString().slice(0, 10),
+        });
+        showMessage('Aviso amarillo', `El Dr. ${medico.nombre} ha sido desactivado.`);
+      } else {
+        showMessage('Médico activado', `El Dr. ${medico.nombre} ha sido activado de nuevo.`);
+      }
+    } catch (error: any) {
+      Alert.alert('Error', error?.message ?? 'No se pudo actualizar el estado del médico. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmarEliminar = async () => {
+    const confirmed = await confirmAction(`¿Estás seguro que deseas eliminar al Dr. ${medico.nombre}?`);
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      await MedicosController.eliminar(medico.id);
+      await AvisosController.crear({
+        paraUserId: 'admin',
+        tipo: 'Recordatorio',
+        titulo: 'Aviso rojo',
+        detalle: `El Dr. ${medico.nombre} ha sido dado de baja del sistema.`,
+        fechaISO: new Date().toISOString().slice(0, 10),
+      });
+      showMessage('Aviso rojo', `El Dr. ${medico.nombre} ha sido dado de baja del sistema.`);
+      navigation.goBack();
+    } catch (error: any) {
+      Alert.alert('Error', error?.message ?? 'No se pudo eliminar el médico. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,9 +116,34 @@ export default function MedicoIndividualAdminScreen({ route, navigation }: any) 
             <Text style={styles.text}>{medico.sobreElMedico}</Text>
           </View>
         ) : null}
-        <View style={styles.accionesRow}>
-          <Button title="EDITAR" variant="outline" onPress={() => navigation.navigate('RegistrarMedico', { medicoId: medico.id })} style={{ flex: 1 }} />
-          <Button title={medico.activo ? 'ELIMINAR/DESACTIVAR' : 'ACTIVAR'} variant="danger" onPress={eliminarDesactivar} style={{ flex: 1 }} />
+        <View style={styles.buttonGroup}>
+          <Button
+            title="EDITAR"
+            variant="outline"
+            onPress={() => navigation.navigate('RegistrarMedico', { medicoId: medico.id })}
+            style={{ width: '100%' }}
+            disabled={loading}
+          />
+        </View>
+        <View style={styles.buttonGroup}>
+          <Button
+            title={medico.activo ? 'DESACTIVAR' : 'ACTIVAR'}
+            variant={medico.activo ? 'warning' : 'primary'}
+            onPress={confirmarToggleActivo}
+            style={{ width: '100%' }}
+            loading={loading}
+            disabled={loading}
+          />
+        </View>
+        <View style={styles.buttonGroup}>
+          <Button
+            title="ELIMINAR"
+            variant="danger"
+            onPress={confirmarEliminar}
+            style={{ width: '100%' }}
+            loading={loading}
+            disabled={loading}
+          />
         </View>
       </ScrollView>
     </View>
@@ -82,4 +168,5 @@ const styles = StyleSheet.create({
   cardTitle: { fontWeight: '800', fontSize: 13, color: colors.text, marginBottom: spacing.sm },
   text: { color: colors.textMuted, fontSize: 12.5, lineHeight: 18 },
   accionesRow: { flexDirection: 'row', gap: spacing.sm },
+  buttonGroup: { marginBottom: spacing.sm },
 });
