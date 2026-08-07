@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Receta } from '../models/Receta';
 import { RecetasController } from '../controllers/RecetasController';
+import { notificationManager } from '../services/notificationService';
 import { useSession } from '../context/SessionContext';
 
 export function useFarmaciaViewModel() {
@@ -36,6 +37,9 @@ export function useFarmaciaViewModel() {
     const res = await RecetasController.invalidarPorCodigo(receta.codigoQR, usuario.id);
     if (res.receta) setReceta(res.receta);
     if (res.error) setError(res.error);
+    if (res.receta) {
+      notificationManager.notifyAlert('Receta invalidada', 'La receta fue invalidada correctamente.');
+    }
     setProcesando(false);
   };
 

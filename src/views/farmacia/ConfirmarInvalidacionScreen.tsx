@@ -7,6 +7,7 @@ import Button from '../../components/Button';
 import { Receta } from '../../models/Receta';
 import { RecetasController } from '../../controllers/RecetasController';
 import { useSession } from '../../context/SessionContext';
+import { notificationManager } from '../../services/notificationService';
 import { formatFechaCorta } from '../../utils/helpers';
 
 export default function ConfirmarInvalidacionScreen({ route, navigation }: any) {
@@ -64,6 +65,8 @@ export default function ConfirmarInvalidacionScreen({ route, navigation }: any) 
       setProcesando(false);
       setInvalidada(true);
       setReceta(resultado.receta);
+      // Notificar en UI que la receta fue completada
+      notificationManager.notifyAlert('Receta completada', 'La receta se completó. El paciente ya no podrá volver a usar este código QR.');
       if (resultado.reemplazo) {
         setError(`Se generó receta de reemplazo con ${resultado.reemplazo.medicamentos.length} medicamento(s) agotado(s).`);
       } else {

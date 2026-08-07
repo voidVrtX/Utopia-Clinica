@@ -2,6 +2,8 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '../theme/theme';
+import NotificationsButton from './NotificationsButton';
+import NotificationsPanel from './NotificationsPanel';
 
 export default function ScreenHeader({
   title,
@@ -26,7 +28,11 @@ export default function ScreenHeader({
       <Text style={styles.title} numberOfLines={1}>
         {title}
       </Text>
-      <View style={styles.side}>{right}</View>
+      <View style={styles.side}>
+        {right}
+        <NotificationsButton />
+      </View>
+      <NotificationsPanel />
     </View>
   );
 }

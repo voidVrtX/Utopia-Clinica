@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/theme';
 import InicioMedicoScreen from '../views/medico/InicioMedicoScreen';
 import AgendaMedicaScreen from '../views/medico/AgendaMedicaScreen';
-import PacientesDelDiaScreen from '../views/medico/PacientesDelDiaScreen';
+import PacientesMedicoScreen from '../views/medico/PacientesMedicoScreen';
 import HistorialMedicoScreen from '../views/medico/HistorialMedicoScreen';
 
 const Tab = createBottomTabNavigator();
@@ -28,7 +28,7 @@ export default function MedicoTabs() {
     >
       <Tab.Screen name="InicioTab" component={InicioMedicoScreen} options={{ title: 'Inicio' }} />
       <Tab.Screen name="AgendaTab" component={AgendaMedicaScreen} options={{ title: 'Agenda' }} />
-      <Tab.Screen name="PacienteTab" component={PacientesDelDiaScreen} options={{ title: 'Paciente' }} />
+      <Tab.Screen name="PacienteTab" component={PacientesMedicoScreen} options={{ title: 'Paciente' }} />
       <Tab.Screen name="HistorialTab" component={HistorialMedicoScreen} options={{ title: 'Historial' }} />
     </Tab.Navigator>
   );

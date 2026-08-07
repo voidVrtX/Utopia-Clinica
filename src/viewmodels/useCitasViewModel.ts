@@ -3,6 +3,7 @@ import { Cita } from '../models/Cita';
 import { CitasController } from '../controllers/CitasController';
 import { AvisosController } from '../controllers/AvisosController';
 import { useSession } from '../context/SessionContext';
+import { notificationManager } from '../services/notificationService';
 
 export type FiltroCitas = 'Todas' | 'Próximas' | 'Completadas' | 'Canceladas';
 
@@ -75,6 +76,8 @@ export function useAgendarCitaViewModel() {
       detalle: `Tu cita de ${especialidad} ha sido agendada.`,
       fechaISO: hoyISO,
     });
+    // notificar en la UI local inmediatamente
+    notificationManager.notifyAlert('Cita registrada', `Tu cita de ${especialidad} ha sido agendada.`);
     await AvisosController.crear({
       paraUserId: medicoId,
       tipo: 'Cita Confirmada',
@@ -82,6 +85,7 @@ export function useAgendarCitaViewModel() {
       detalle: `${usuario.nombre} agendó una cita de ${especialidad} el ${fechaISO} a las ${hora}.`,
       fechaISO: hoyISO,
     });
+    notificationManager.notifyAlert('Nueva cita', `${usuario.nombre} agendó una cita de ${especialidad}.`);
     setEnviando(false);
     onOk(cita.id);
   };
@@ -125,6 +129,7 @@ export function useDetalleCitaViewModel(citaId: string) {
         detalle: motivo || 'Cita cancelada por el paciente.',
         fechaISO: new Date().toISOString().slice(0, 10),
       });
+      notificationManager.notifyAlert('Cita cancelada', motivo || 'Tu cita fue cancelada.');
     }
   };
 
@@ -164,6 +169,7 @@ export function useModificarCitaViewModel(citaId: string) {
         detalle: 'Tu cita fue modificada correctamente.',
         fechaISO: new Date().toISOString().slice(0, 10),
       });
+      notificationManager.notifyAlert('Cita modificada', 'Tu cita fue modificada correctamente.');
     }
     setEnviando(false);
     onOk();

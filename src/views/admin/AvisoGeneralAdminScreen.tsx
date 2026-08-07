@@ -5,6 +5,7 @@ import { Image } from 'react-native';
 import { colors, radius, spacing } from '../../theme/theme';
 import Button from '../../components/Button';
 import { AvisosController } from '../../controllers/AvisosController';
+import { notificationManager } from '../../services/notificationService';
 
 export default function AvisoGeneralAdminScreen({ navigation }: any) {
   const [mensaje, setMensaje] = useState('');
@@ -21,6 +22,7 @@ export default function AvisoGeneralAdminScreen({ navigation }: any) {
       detalle: mensaje,
       fechaISO: new Date().toISOString().slice(0, 10),
     });
+    notificationManager.notifyAlert('Reporte', 'Se envió un aviso general.');
     setEnviando(false);
     setEnviado(true);
   };
